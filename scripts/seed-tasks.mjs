@@ -33,7 +33,9 @@ const LABELS = [
   ["area:infra", "666666", "CI, tooling, deploy"],
 ];
 
-const { milestones, tasks } = parse(readFileSync(new URL("../tasks/backlog.yaml", import.meta.url), "utf8"));
+const { milestones, tasks } = parse(
+  readFileSync(new URL("../tasks/backlog.yaml", import.meta.url), "utf8"),
+);
 
 // ---- validate backlog ----
 const keys = new Set();
@@ -43,14 +45,17 @@ for (const t of tasks) {
   }
   if (keys.has(t.key)) throw new Error(`backlog: duplicate key ${t.key}`);
   for (const d of t.depends ?? []) {
-    if (!keys.has(d)) throw new Error(`backlog: ${t.key} depends on "${d}", which must appear earlier`);
+    if (!keys.has(d))
+      throw new Error(`backlog: ${t.key} depends on "${d}", which must appear earlier`);
   }
-  if (!milestones[t.milestone]) throw new Error(`backlog: ${t.key} has unknown milestone ${t.milestone}`);
+  if (!milestones[t.milestone])
+    throw new Error(`backlog: ${t.key} has unknown milestone ${t.milestone}`);
   keys.add(t.key);
 }
 
 const bullets = (xs) => (xs?.length ? xs.map((x) => `- ${x}`).join("\n") : "_none listed_");
-const checks = (xs) => (xs?.length ? xs.map((x) => `- [ ] ${x}`).join("\n") : "- [ ] `pnpm verify` passes");
+const checks = (xs) =>
+  xs?.length ? xs.map((x) => `- [ ] ${x}`).join("\n") : "- [ ] `pnpm verify` passes";
 
 const body = (t, numberByKey) =>
   [
@@ -66,11 +71,15 @@ const body = (t, numberByKey) =>
   ].join("\n\n");
 
 if (DRY) {
-  console.log(`DRY RUN: ${LABELS.length} labels, ${Object.keys(milestones).length} milestones, ${tasks.length} issues\n`);
+  console.log(
+    `DRY RUN: ${LABELS.length} labels, ${Object.keys(milestones).length} milestones, ${tasks.length} issues\n`,
+  );
   for (const [k, m] of Object.entries(milestones)) {
     console.log(`\n${m.title} (due ${m.due})`);
     for (const t of tasks.filter((x) => x.milestone === k)) {
-      console.log(`  [${t.who === "agent-ok" ? "agent" : "human"}] ${t.title}${t.depends ? `  ← ${t.depends.join(", ")}` : ""}`);
+      console.log(
+        `  [${t.who === "agent-ok" ? "agent" : "human"}] ${t.title}${t.depends ? `  ← ${t.depends.join(", ")}` : ""}`,
+      );
     }
   }
   process.exit(0);
@@ -83,21 +92,31 @@ for (const [name, color, description] of LABELS) {
 console.log(`✔ ${LABELS.length} labels`);
 
 // ---- milestones ----
-const existingMs = JSON.parse(gh(["api", "repos/{owner}/{repo}/milestones?state=all&per_page=100"]));
+const existingMs = JSON.parse(
+  gh(["api", "repos/{owner}/{repo}/milestones?state=all&per_page=100"]),
+);
 for (const m of Object.values(milestones)) {
   if (existingMs.some((e) => e.title === m.title)) continue;
   gh([
-    "api", "-X", "POST", "repos/{owner}/{repo}/milestones",
-    "-f", `title=${m.title}`,
-    "-f", `due_on=${m.due}T23:59:59Z`,
-    "-f", `description=${m.description}`,
+    "api",
+    "-X",
+    "POST",
+    "repos/{owner}/{repo}/milestones",
+    "-f",
+    `title=${m.title}`,
+    "-f",
+    `due_on=${m.due}T23:59:59Z`,
+    "-f",
+    `description=${m.description}`,
   ]);
   console.log(`  + milestone ${m.title}`);
 }
 console.log("✔ milestones");
 
 // ---- issues ----
-const existing = JSON.parse(gh(["issue", "list", "--state", "all", "--limit", "1000", "--json", "number,title"]));
+const existing = JSON.parse(
+  gh(["issue", "list", "--state", "all", "--limit", "1000", "--json", "number,title"]),
+);
 const numberByKey = {};
 for (const t of tasks) {
   const hit = existing.find((e) => e.title === t.title);
@@ -107,11 +126,24 @@ for (const t of tasks) {
   }
   const labels = ["task", t.who, `area:${t.area}`, ...(t.contract ? ["contract"] : [])];
   const url = gh(
-    ["issue", "create", "--title", t.title, "--body-file", "-", "--label", labels.join(","), "--milestone", milestones[t.milestone].title],
+    [
+      "issue",
+      "create",
+      "--title",
+      t.title,
+      "--body-file",
+      "-",
+      "--label",
+      labels.join(","),
+      "--milestone",
+      milestones[t.milestone].title,
+    ],
     body(t, numberByKey),
   ).trim();
   numberByKey[t.key] = Number(url.split("/").pop());
   console.log(`  + #${numberByKey[t.key]} ${t.title}`);
 }
 console.log(`✔ ${tasks.length} tasks present as issues`);
-console.log("\nNext: create a GitHub Project board (README → Shared to-do list) and add these issues to it.");
+console.log(
+  "\nNext: create a GitHub Project board (README → Shared to-do list) and add these issues to it.",
+);

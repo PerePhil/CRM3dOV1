@@ -184,7 +184,8 @@ export const Catalog = z
     for (const d of new Set(dupes)) ctx.addIssue({ code: "custom", message: `duplicate id ${d}` });
 
     const need = (set: Set<string>, id: string, where: string) => {
-      if (!set.has(id)) ctx.addIssue({ code: "custom", message: `${where} references unknown ${id}` });
+      if (!set.has(id))
+        ctx.addIssue({ code: "custom", message: `${where} references unknown ${id}` });
     };
     for (const l of c.links) {
       need(ids.node, l.from, `link ${l.id}.from`);

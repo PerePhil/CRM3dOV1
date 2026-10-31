@@ -10,7 +10,10 @@ const BANNED = [
   { re: /\bMath\.random\s*\(/, why: "use createRng(seed) from @ov1/core" },
   { re: /\bDate\.now\s*\(/, why: "sim time comes from the tick counter, not the wall clock" },
   { re: /\bnew\s+Date\s*\(/, why: "sim time comes from the tick counter, not the wall clock" },
-  { re: /\bperformance\.now\s*\(/, why: "sim time comes from the tick counter, not the wall clock" },
+  {
+    re: /\bperformance\.now\s*\(/,
+    why: "sim time comes from the tick counter, not the wall clock",
+  },
   { re: /\bcrypto\.getRandomValues\s*\(/, why: "use createRng(seed) from @ov1/core" },
   { re: /\bcrypto\.randomUUID\s*\(/, why: "derive IDs from the seeded RNG or a counter" },
 ];

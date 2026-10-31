@@ -29,7 +29,11 @@ if (touched.length === 0) {
 if (!changed.includes("SPEC.md")) {
   console.error("✖ contract-guard: frozen contract file(s) changed without a SPEC.md update:");
   for (const t of touched) console.error(`    ${t}`);
-  console.error("\n  Contract changes need a `contract`-labeled task and a matching SPEC.md edit in the same PR.");
+  console.error(
+    "\n  Contract changes need a `contract`-labeled task and a matching SPEC.md edit in the same PR.",
+  );
   process.exit(1);
 }
-console.log(`✔ contract-guard: ${touched.join(", ")} changed with SPEC.md, so owner review is required`);
+console.log(
+  `✔ contract-guard: ${touched.join(", ")} changed with SPEC.md, so owner review is required`,
+);

@@ -20,10 +20,19 @@ export function createEventLog(tickHz: number): EventLog {
   return {
     emit(tick, type, source, payload) {
       if (!Number.isInteger(tick) || tick < lastTick) {
-        throw new Error(`EventLog: tick must be a non-decreasing integer (got ${tick} after ${lastTick})`);
+        throw new Error(
+          `EventLog: tick must be a non-decreasing integer (got ${tick} after ${lastTick})`,
+        );
       }
       lastTick = tick;
-      const ev = Object.freeze({ seq: events.length, tick, t: tick / tickHz, type, source, payload });
+      const ev = Object.freeze({
+        seq: events.length,
+        tick,
+        t: tick / tickHz,
+        type,
+        source,
+        payload,
+      });
       events.push(ev as SimEvent);
     },
     get events() {
