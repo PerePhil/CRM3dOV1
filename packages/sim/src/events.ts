@@ -51,11 +51,11 @@ export interface EventPayloads {
   /** A control changed sim behavior (e.g. spoof detection fired, INS took over). */
   "control.trigger": { controlId: string; effect: string };
   /** Something (control, operator, monitor) detected a threat. */
-  "detection": { threatId: string; by: string; latencyS: number };
+  detection: { threatId: string; by: string; latencyS: number };
   /** The scenario's loss condition occurred (SPEC §6.3). */
   "loss.event": { kind: RunOutcome; detail: string };
   /** Free-form annotation for the event log UI. Don't use it to carry machine-read data. */
-  "note": { text: string };
+  note: { text: string };
 }
 
 export type SimEventType = keyof EventPayloads;

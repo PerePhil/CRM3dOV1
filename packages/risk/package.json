@@ -4,7 +4,14 @@
   "private": true,
   "type": "module",
   "description": "FAIR Monte Carlo engine (Beta-PERT / lognormal, ALE, LEC, ROSI). No DOM. Deterministic.",
-  "exports": { ".": "./src/index.ts" },
-  "scripts": { "test": "vitest run", "typecheck": "tsc --noEmit -p ." },
-  "dependencies": { "@ov1/core": "workspace:*" }
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "@ov1/core": "workspace:*"
+  }
 }

@@ -1,5 +1,7 @@
 import type { Node } from "@ov1/catalog";
 import { Edges, Html } from "@react-three/drei";
+import { useThree } from "@react-three/fiber";
+import { type RefObject, useMemo } from "react";
 import { color } from "../theme/tokens";
 import type { Vec3 } from "./layout";
 
@@ -64,10 +66,21 @@ function Shape({ node, fill }: { node: Node; fill: string }) {
 /** One OV-1 node: platform icon + callout box (SPEC §8.4). */
 export function Platform({ node, position }: { node: Node; position: Vec3 }) {
   const fill = color(node.affiliation);
+  // Pin the callout's DOM target. Without it, drei <Html> mounts into the canvas parent, then
+  // re-mounts once R3F connects events, and the first callout comes back empty (drei 10.7).
+  const gl = useThree((s) => s.gl);
+  // The canvas is always mounted inside a wrapper div here, so parentElement is non-null.
+  const portal = useMemo(() => ({ current: gl.domElement.parentElement }), [gl]);
   return (
     <group position={position}>
       <Shape node={node} fill={fill} />
-      <Html position={[0, 1.6, 0]} center zIndexRange={[10, 0]} style={{ pointerEvents: "none" }}>
+      <Html
+        portal={portal as RefObject<HTMLElement>}
+        position={[0, 1.6, 0]}
+        center
+        zIndexRange={[10, 0]}
+        style={{ pointerEvents: "none" }}
+      >
         <div
           data-testid={`callout-${node.id}`}
           className="whitespace-nowrap border border-rule bg-paper px-1.5 py-0.5 text-[10px] font-bold leading-tight shadow-sm"

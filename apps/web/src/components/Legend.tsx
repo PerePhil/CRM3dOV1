@@ -16,7 +16,9 @@ export function Legend() {
       data-testid="legend"
       className="absolute bottom-3 left-3 border border-rule bg-paper/95 p-2 text-[11px] shadow-sm"
     >
-      <figcaption className="mb-1 border-b border-rule pb-0.5 font-bold uppercase">Legend</figcaption>
+      <figcaption className="mb-1 border-b border-rule pb-0.5 font-bold uppercase">
+        Legend
+      </figcaption>
       <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
         {catalog.links.map((l) => (
           <div key={l.id} className="flex items-center gap-1.5">

@@ -23,8 +23,8 @@ describe("Beta-PERT vs Python golden vectors", () => {
       expect(Math.abs(mean - c.mean) / c.mean).toBeLessThan(0.005);
       expect(Math.abs(variance - c.variance) / c.variance).toBeLessThan(0.02);
       // reduce, not Math.min(...xs): spreading 200k args overflows the call stack
-      expect(xs.reduce((m, x) => (x < m ? x : m), Infinity)).toBeGreaterThanOrEqual(c.params.min);
-      expect(xs.reduce((m, x) => (x > m ? x : m), -Infinity)).toBeLessThanOrEqual(c.params.max);
+      expect(xs.reduce((m, x) => Math.min(m, x), Infinity)).toBeGreaterThanOrEqual(c.params.min);
+      expect(xs.reduce((m, x) => Math.max(m, x), -Infinity)).toBeLessThanOrEqual(c.params.max);
     });
   }
 });

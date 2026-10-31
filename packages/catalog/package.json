@@ -4,7 +4,15 @@
   "private": true,
   "type": "module",
   "description": "THE CONTRACT: zod schema + JSON data for nodes, links, threats, controls, scenarios, adversaries.",
-  "exports": { ".": "./src/index.ts", "./schema": "./src/schema.ts" },
-  "scripts": { "test": "vitest run", "typecheck": "tsc --noEmit -p ." },
-  "dependencies": { "zod": "^4.1.0" }
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  },
+  "dependencies": {
+    "zod": "^4.1.0"
+  }
 }

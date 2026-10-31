@@ -7,7 +7,9 @@ test("app boots into the OV-1 shell with no console errors", async ({ page }) =>
 
   await page.goto("/");
 
-  await expect(page.getByTestId("banner-top")).toHaveText("UNCLASSIFIED // NOTIONAL — ACADEMIC USE");
+  await expect(page.getByTestId("banner-top")).toHaveText(
+    "UNCLASSIFIED // NOTIONAL — ACADEMIC USE",
+  );
   await expect(page.getByTestId("banner-bottom")).toBeVisible();
   await expect(page.getByRole("heading", { name: "CONTESTED // OV-1" })).toBeVisible();
   await expect(page.getByTestId("scenario-list").locator("li")).toHaveCount(6);

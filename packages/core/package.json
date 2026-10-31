@@ -4,6 +4,11 @@
   "private": true,
   "type": "module",
   "description": "Seeded PRNG, units, shared helpers. No DOM. Deterministic.",
-  "exports": { ".": "./src/index.ts" },
-  "scripts": { "test": "vitest run", "typecheck": "tsc --noEmit -p ." }
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
+  }
 }

@@ -5,6 +5,7 @@
 > **Team:** Jared Giesen · Phillip Steiger · Ella Park
 > **Final deliverable due:** 24 Nov 2026. Presentations in the last three class sessions.
 > **Status:** v0.3, initial commit scaffolded. This file is canonical. If code, issues, or agent output disagree with it, this file wins until someone changes it by PR.
+> **v0.3.1:** `packages/catalog/src/schema.ts` and `packages/sim/src/events.ts` were reformatted by Biome 2.6 (whitespace and key quoting only); no contract shape changes.
 
 ---
 

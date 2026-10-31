@@ -1,8 +1,19 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.2.0/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.3/schema.json",
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "files": {
-    "includes": ["**", "!**/dist", "!**/node_modules", "!**/playwright-report", "!**/test-results", "!fixtures/**", "!analysis/**"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/node_modules",
+      "!**/playwright-report",
+      "!**/test-results",
+      "!fixtures",
+      "!analysis",
+      "!**/*.md",
+      "!**/*.yaml",
+      "!**/*.yml"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -10,14 +21,18 @@
     "indentWidth": 2,
     "lineWidth": 100
   },
+  "css": { "parser": { "tailwindDirectives": true } },
   "javascript": {
     "formatter": { "quoteStyle": "double", "semicolons": "always", "trailingCommas": "all" }
   },
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
-      "suspicious": { "noExplicitAny": "error", "noConsole": { "level": "warn", "options": { "allow": ["warn", "error"] } } },
+      "preset": "recommended",
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noConsole": { "level": "warn", "options": { "allow": ["warn", "error"] } }
+      },
       "style": { "noNonNullAssertion": "warn", "useImportType": "error" },
       "correctness": { "noUnusedImports": "error", "noUnusedVariables": "error" }
     }

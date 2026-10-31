@@ -2,8 +2,8 @@ import { catalog } from "@ov1/catalog";
 import { Edges, OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
 import { color } from "../theme/tokens";
-import { NODE_LAYOUT, SCENERY, SLIDE_CAMERA, type Vec3 } from "./layout";
 import { LinkLine } from "./LinkLine";
+import { NODE_LAYOUT, SCENERY, SLIDE_CAMERA, type Vec3 } from "./layout";
 import { Platform } from "./platforms";
 
 function Scenery() {

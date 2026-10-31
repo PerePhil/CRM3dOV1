@@ -2,9 +2,11 @@
  * OV-1 design tokens: the ONLY place colors and fonts are defined (SPEC §8, AGENTS.md §6).
  * Tailwind v4 turns every --color-* here into utilities (bg-friendly, text-hostile, …),
  * and the 3D scene reads the same variables at runtime via theme/tokens.ts.
+ * `static` makes Tailwind emit every variable, not just the ones a utility class uses;
+ * otherwise tokens read only by the scene (e.g. --color-land) are stripped from the build.
  * Never put hex values in components.
  */
-@theme {
+@theme static {
   /* ---- type ---- */
   --font-ui: "Arimo", Arial, Helvetica, sans-serif;
   --font-data: "JetBrains Mono", ui-monospace, monospace;
