@@ -1,6 +1,7 @@
 name: Preview deploy (Cloudflare Pages)
 
-# Deploys every PR to a Cloudflare Pages preview URL and comments it on the PR.
+# Deploys every PR and every branch push to a Cloudflare Pages preview URL, and comments
+# the URL on the PR when there is one.
 # Requires repo secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID, plus a Pages
 # project named below. Until those exist this workflow skips cleanly; it never fails CI.
 # Alternative: connect the repo in the Cloudflare Pages dashboard (Git integration)
@@ -9,7 +10,12 @@ name: Preview deploy (Cloudflare Pages)
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: ["**"]
+
+# A push to a PR branch fires both events. Group by branch so only the newest deploy runs.
+concurrency:
+  group: preview-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
