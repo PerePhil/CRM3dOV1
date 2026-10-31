@@ -20,6 +20,8 @@ A browser-based 3D **DoDAF OV-1** of a Boeing UAV mission in contested airspace.
 | `pnpm test` / `pnpm test:py` / `pnpm test:e2e` | TS unit tests / Python tests / Playwright smoke |
 | `pnpm golden` | Regenerate Python golden vectors in `fixtures/` (only if your task says to) |
 
+**Claude Code cloud sessions:** dependencies install automatically via a SessionStart hook. If `node_modules` is missing anyway, run `bash scripts/cloud-setup.sh` yourself. Never rebuild missing config files from docs; stop and report that they're missing.
+
 Use **pnpm only**, never npm or yarn. Python runs through **uv** (`uv run --project analysis …`), never bare `pip`.
 
 ## 3. Repo map

@@ -1,0 +1,22 @@
+{
+  "name": "contested-ov1",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" },
+    "ghcr.io/devcontainers/features/python:1": { "version": "3.13" },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "postCreateCommand": "curl -LsSf https://astral.sh/uv/install.sh | sh && corepack enable && pnpm install --frozen-lockfile && uv sync --project analysis && pnpm --filter @ov1/web exec playwright install --with-deps chromium",
+  "forwardPorts": [5173],
+  "portsAttributes": { "5173": { "label": "OV-1 web app", "onAutoForward": "notify" } },
+  "customizations": {
+    "vscode": {
+      "extensions": ["biomejs.biome", "charliermarsh.ruff", "ms-python.python", "ms-playwright.playwright"],
+      "settings": {
+        "editor.defaultFormatter": "biomejs.biome",
+        "editor.formatOnSave": true,
+        "[python]": { "editor.defaultFormatter": "charliermarsh.ruff" }
+      }
+    }
+  }
+}

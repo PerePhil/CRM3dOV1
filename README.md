@@ -24,6 +24,15 @@ pnpm verify                     # the gate: run before every PR
 
 Or open the repo in a **devcontainer** (VS Code / Codespaces), which installs everything above.
 
+### Working in Claude Code cloud sessions (claude.ai/code)
+- **Environment network:** limited / Trusted, with package managers on. Don't use full access.
+- **Environment setup script:** leave it empty. It runs as root *outside* the repo before Claude starts, so it can't install project deps.
+- **Project deps** install automatically through the SessionStart hook in `.claude/settings.json` → `scripts/cloud-setup.sh` (cloud only; no-op locally).
+- **Viewing changes:** the Cloudflare preview URL on the PR/branch, or ask Claude for a Playwright screenshot.
+
+> ⚠️ **Push with the git CLI, not GitHub's web uploader or Finder drag-and-drop.** Both silently drop dotfiles
+> (`.github/`, `.gitignore`, `.claude/`, …), which removes CI, the guardrails, and the agent config.
+
 ---
 
 ## First-time setup (repo owner, once)
@@ -113,7 +122,7 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 ### Agent permissions & environment
 | File | Purpose |
 |---|---|
-| `.claude/settings.json` | Shared Claude Code permissions. Allows pnpm/uv/git-read commands; **denies** reading `.env`/keys, force-push, pushing to main, `rm -rf`, and npm/yarn/pip. Personal overrides go in `.claude/settings.local.json` (gitignored). |
+| `.claude/settings.json` | Shared Claude Code permissions. Registers the cloud **SessionStart hook**; allows pnpm/uv/git-read commands; **denies** reading `.env`/keys, force-push, pushing to main, `rm -rf`, and npm/yarn/pip. Personal overrides go in `.claude/settings.local.json` (gitignored). |
 | `.devcontainer/devcontainer.json` | Identical environment for everyone and every cloud agent: Node 22, Python 3.13, uv, gh, Playwright Chromium, Biome/Ruff extensions. |
 | `.node-version` | Pins Node 22 for nvm/fnm/volta, CI, and Cloudflare. |
 | `package.json` → `packageManager` | Pins the pnpm version via corepack. |
@@ -145,6 +154,7 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 |---|---|
 | `scripts/guard-determinism.mjs` | Fails if `Math.random`, `Date.now`, `new Date()`, `performance.now`, or `crypto.getRandomValues` appear in `packages/{core,sim,risk}`. |
 | `scripts/guard-contract.mjs` | Fails if a frozen contract file changed without a `SPEC.md` change in the same PR. |
+| `scripts/cloud-setup.sh` | Installs pnpm + uv deps at the start of every Claude Code cloud session (via the SessionStart hook). No-op elsewhere. |
 | `scripts/seed-tasks.mjs` | Creates labels, milestones, and issues from the backlog (`--dry-run` to preview). |
 | `tasks/backlog.yaml` | The shared to-do list seed: 42 scoped tasks across M0–M3. |
 

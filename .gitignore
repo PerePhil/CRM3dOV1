@@ -1,0 +1,45 @@
+# deps
+node_modules/
+.pnpm-store/
+
+# build output
+dist/
+build/
+*.tsbuildinfo
+.vite/
+
+# test output
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# secrets: never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# cloudflare
+.wrangler/
+
+# per-person agent/editor settings (shared ones ARE committed)
+.claude/settings.local.json
+.claude/scratch/
+.cursor/*.local.*
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# os
+.DS_Store
+Thumbs.db

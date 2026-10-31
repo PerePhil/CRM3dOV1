@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project source of truth (SPEC.md)
+    url: https://github.com/
+    about: Read SPEC.md in the repo root before opening a task. Update this link to the repo's SPEC.md URL after first push.

@@ -1,0 +1,9 @@
+---
+description: Project rules for CONTESTED // OV-1. Always applied.
+alwaysApply: true
+---
+
+All agent rules for this repository live in `AGENTS.md` at the repo root, and the project source of truth is `SPEC.md`. Read both before making changes. This file is intentionally only a pointer, so the rules can't drift.
+
+@AGENTS.md
+@SPEC.md

@@ -1,0 +1,76 @@
+name: Task (agent or human)
+description: One unit of work, scoped tightly enough that one agent can finish it in one PR.
+title: "[area] short imperative title"
+labels: ["task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before an agent starts:** assign yourself and add the `in-progress` label so nobody else picks this up.
+        Agents must stay inside **Files in scope**. See `AGENTS.md` §4.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [scene, sim, risk, catalog, docs, infra]
+    validations:
+      required: true
+  - type: dropdown
+    id: who
+    attributes:
+      label: Who can do this
+      options:
+        - agent-ok (an agent can do it end to end; a human reviews)
+        - human-only (judgment, sourcing, or presentation work)
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: What exists when this is done, and why. Link the SPEC.md section.
+      placeholder: "Implement FSPL + J/S link margin model per SPEC §6.1 so S1 can compute link state."
+    validations:
+      required: true
+  - type: textarea
+    id: in_scope
+    attributes:
+      label: Files in scope
+      description: The ONLY files this task may create or modify (tests for them are implied).
+      placeholder: |
+        packages/sim/src/link.ts (new)
+        packages/sim/src/index.ts (export only)
+    validations:
+      required: true
+  - type: textarea
+    id: off_limits
+    attributes:
+      label: Off-limits / out of scope
+      placeholder: "No changes to schema.ts or events.ts. No UI."
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Checkable statements. These are what the reviewer tests.
+      placeholder: |
+        - [ ] fsplDb(1000, 2.4e9) within 0.01 dB of 100.05
+        - [ ] linkState() returns denied when J/S >= theta_deny
+        - [ ] pnpm verify passes
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests required
+      placeholder: "Unit tests in packages/sim/src/link.test.ts covering each threshold boundary."
+  - type: input
+    id: depends
+    attributes:
+      label: Depends on
+      placeholder: "#3, #7"
+  - type: checkboxes
+    id: contract
+    attributes:
+      label: Contract change?
+      options:
+        - label: This task modifies a frozen contract file (schema.ts / events.ts / rng.ts). Label it `contract`; the PR must update SPEC.md.

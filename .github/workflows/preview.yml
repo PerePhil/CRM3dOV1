@@ -1,0 +1,64 @@
+name: Preview deploy (Cloudflare Pages)
+
+# Deploys every PR to a Cloudflare Pages preview URL and comments it on the PR.
+# Requires repo secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID, plus a Pages
+# project named below. Until those exist this workflow skips cleanly; it never fails CI.
+# Alternative: connect the repo in the Cloudflare Pages dashboard (Git integration)
+# and delete this file. Either works; don't run both.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  deployments: write
+  pull-requests: write
+
+env:
+  PAGES_PROJECT: contested-ov1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Cloudflare secrets
+        id: cf
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Cloudflare secrets not set; skipping preview deploy."
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v4
+        if: steps.cf.outputs.enabled == 'true'
+      - uses: pnpm/action-setup@v4
+        if: steps.cf.outputs.enabled == 'true'
+      - uses: actions/setup-node@v4
+        if: steps.cf.outputs.enabled == 'true'
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - if: steps.cf.outputs.enabled == 'true'
+        run: pnpm install --frozen-lockfile && pnpm --filter @ov1/web build
+      - name: Deploy
+        id: deploy
+        if: steps.cf.outputs.enabled == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy apps/web/dist --project-name=${{ env.PAGES_PROJECT }} --branch=${{ github.head_ref || github.ref_name }}
+      - name: Comment preview URL
+        if: steps.cf.outputs.enabled == 'true' && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          BODY="Preview deploy: $URL"
+          gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --body "$BODY" --edit-last \
+            || gh pr comment "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}" --body "$BODY"

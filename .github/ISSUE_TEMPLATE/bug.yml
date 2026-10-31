@@ -1,0 +1,30 @@
+name: Bug
+description: Something is wrong in the app, sim, risk numbers, or tooling.
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened vs. what you expected
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduce
+      description: For sim/risk bugs, paste the share URL or the scenario config + seed. Determinism means it WILL reproduce.
+      placeholder: "Scenario S1, seed 42, lost-link=RTB → UAV never turns back after t=120s"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [scene, sim, risk, catalog, docs, infra]
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots

@@ -1,0 +1,33 @@
+# CODEOWNERS: who must approve changes to which paths.
+#
+# TODO (first-time setup): replace the three placeholders below with real GitHub usernames,
+# then enable "Require review from Code Owners" in branch protection for `main`.
+#   OWNER_PHILLIP -> Phillip's GitHub username
+#   OWNER_JARED   -> Jared's GitHub username
+#   OWNER_ELLA    -> Ella's GitHub username
+# Format is "@username". The LAST matching rule wins.
+
+# Default: any teammate can approve
+*                                   @OWNER_PHILLIP @OWNER_JARED @OWNER_ELLA
+
+# ---- Contracts: the contract steward must approve (SPEC §9.1) ----
+/SPEC.md                            @OWNER_PHILLIP
+/AGENTS.md                          @OWNER_PHILLIP
+/CLAUDE.md                          @OWNER_PHILLIP
+/packages/catalog/src/schema.ts     @OWNER_PHILLIP
+/packages/sim/src/events.ts         @OWNER_PHILLIP
+/packages/core/src/rng.ts           @OWNER_PHILLIP
+
+# ---- Guardrails: agents must not be able to quietly loosen these ----
+/.github/                           @OWNER_PHILLIP
+/scripts/guard-*.mjs                @OWNER_PHILLIP
+/biome.json                         @OWNER_PHILLIP
+/tsconfig.base.json                 @OWNER_PHILLIP
+/.claude/settings.json              @OWNER_PHILLIP
+
+# ---- Area owners: fill in once SPEC §12 "ownership split" is decided ----
+# /apps/web/                        @OWNER_SCENE
+# /packages/sim/                    @OWNER_SIM
+# /packages/risk/                   @OWNER_RISK
+# /analysis/                        @OWNER_RISK
+# /docs/                            @OWNER_DOCS
