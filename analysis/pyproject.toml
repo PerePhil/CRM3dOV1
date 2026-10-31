@@ -15,9 +15,10 @@ dev = [
 ]
 
 [tool.uv]
-# Supply-chain hardening: ignore any distribution uploaded after this date (7 days before
-# the lockfile was created). Bump deliberately when you need a newer release.
-exclude-newer = "2026-10-24T00:00:00Z"
+# Supply-chain hardening: ignore any distribution uploaded in the last 7 days. The window is
+# relative (uv.lock records it as `exclude-newer-span = "P7D"`), so it never needs bumping.
+# Needs a uv that understands relative durations (verified on 0.11.32; CI installs latest).
+exclude-newer = "7 days"
 
 [build-system]
 requires = ["hatchling"]
