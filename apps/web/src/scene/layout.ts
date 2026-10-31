@@ -11,12 +11,12 @@ export const NODE_LAYOUT: Readonly<Record<string, Vec3>> = {
   "N-GCS": [-6, 1.6, 4],
   "N-MX": [-9.2, 1.6, 4.2],
   "N-C2": [-12, 1.2, -7],
-  "N-SUP": [-16, 0.9, -9.5],
+  "N-SUP": [-18.5, 0.9, -11],
   "N-SAT": [-3, 13, -11],
   "N-GNSS": [8, 14.5, -13],
   "N-ADV-JAM": [10, 1.0, 6],
   "N-ADV-SPOOF": [14, 1.0, -1],
-  "N-ADV-CYBER": [16, 1.0, -8],
+  "N-ADV-CYBER": [14.5, 1.0, -9],
 };
 
 /** Scenery that isn't a catalog node (carrier hull, land masses). */
@@ -29,7 +29,7 @@ export const SCENERY = {
 
 /** Default camera: the classic three-quarter OV-1 "slide" view (SPEC §7). */
 export const SLIDE_CAMERA = {
-  position: [17, 17, 27] as Vec3,
-  target: [0, 3.5, -2] as Vec3,
-  fov: 40,
+  position: [10, 17, 30] as Vec3,
+  target: [0.5, 4, -3] as Vec3,
+  fov: 42,
 } as const;
