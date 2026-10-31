@@ -1,7 +1,8 @@
-import type { Link } from "@ov1/catalog";
+import { catalog, type Link } from "@ov1/catalog";
 import { Html, Line } from "@react-three/drei";
 import { color, linkColorToken } from "../theme/tokens";
 import { NODE_LAYOUT, type Vec3 } from "./layout";
+import { labelFraction } from "./linkLabels";
 import { zigzag } from "./zigzag";
 
 const pos = (id: string): Vec3 => {
@@ -23,7 +24,9 @@ export function LinkLine({ link }: { link: Link }) {
     const seg = link.medium === "rf" ? zigzag(a, b, 10, 0.3) : [a, b];
     points.push(...(i === 0 ? seg : seg.slice(1)));
   }
-  const mid = points[Math.floor(points.length / 2)] as Vec3;
+  // Midpoint for most links; spread out when links share endpoints (e.g. LOS C2 and TLM).
+  const f = labelFraction(link, catalog.links);
+  const mid = points[Math.round(f * (points.length - 1))] as Vec3;
   const token = linkColorToken(link);
 
   return (
