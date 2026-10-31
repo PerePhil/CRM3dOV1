@@ -1,0 +1,16 @@
+[
+  { "id": "C-FHSS", "name": "Frequency hopping / anti-jam waveform", "description": "Adds processing gain against jamming.", "mitigates": ["T-JAM-C2"],
+    "effects": [ { "kind": "sim-param", "target": "link.L-LOS.processingGainDb", "note": "adds G_p to signal side (SPEC §6.1)" } ] },
+  { "id": "C-NULL-ANT", "name": "Nulling (CRPA) antenna", "description": "Steers nulls toward jammers and spoofers.", "mitigates": ["T-JAM-C2", "T-GNSS-SPOOF"],
+    "effects": [ { "kind": "sim-param", "target": "uav.rxGainTowardJammerDb", "note": "reduces G_{R→J}" } ] },
+  { "id": "C-MULTI-GNSS", "name": "Multi-constellation GNSS + spoof detection", "description": "Cross-checks constellations and flags inconsistent fixes.", "mitigates": ["T-GNSS-SPOOF"] },
+  { "id": "C-INS", "name": "INS fallback / dead reckoning", "description": "Holds a navigation solution through GNSS denial with growing error.", "mitigates": ["T-GNSS-SPOOF", "T-JAM-C2"] },
+  { "id": "C-XCHECK", "name": "Independent sensor cross-check", "description": "Variability limits and human intervention on contradictions (Milestone 1).", "mitigates": ["T-GNSS-SPOOF", "T-TLM-INJECT"] },
+  { "id": "C-LINK-CRYPTO", "name": "Link encryption + authentication", "description": "Rejects unauthenticated C2 and telemetry.", "mitigates": ["T-TLM-INJECT", "T-JAM-C2"] },
+  { "id": "C-SECURE-BOOT", "name": "Secure boot + independently verified signed firmware", "description": "Independent build verification before signing and load.", "mitigates": ["T-FW-MALWARE"] },
+  { "id": "C-JIT-PRIV", "name": "Just-in-time maintenance privileges", "description": "Short-lived, scoped maintenance credentials with revocation tests.", "mitigates": ["T-CRED-MX"] },
+  { "id": "C-SEGMENT-BACKUP", "name": "GCS segmentation + immutable backups", "description": "Contains ransomware and speeds restoration.", "mitigates": ["T-RANSOM-GCS"] },
+  { "id": "C-UAV-SEC-TEAM", "name": "Dedicated UAV security team (~$4M/yr)", "description": "Milestone 1 proposal: 10-person independent team for jamming, telemetry, and supply-chain testing.",
+    "mitigates": ["T-JAM-C2", "T-GNSS-SPOOF", "T-TLM-INJECT", "T-FW-MALWARE", "T-CRED-MX"],
+    "annualCostUsd": { "min": 3500000, "ml": 4000000, "max": 5000000, "source": "Milestone 1 presentation estimate; refine in docs/fair/" } }
+]

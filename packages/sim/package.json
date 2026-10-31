@@ -1,0 +1,10 @@
+{
+  "name": "@ov1/sim",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic fixed-timestep UAV/link simulation + append-only event log. No DOM, no three.js.",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "test": "vitest run", "typecheck": "tsc --noEmit -p ." },
+  "dependencies": { "@ov1/core": "workspace:*", "@ov1/catalog": "workspace:*" }
+}

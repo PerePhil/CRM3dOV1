@@ -1,0 +1,46 @@
+{
+  "_generated_by": "ov1_analysis/golden.py (do not hand-edit; run `pnpm golden`)",
+  "gamma": 4.0,
+  "cases": [
+    {
+      "name": "symmetric",
+      "params": {
+        "min": 0.0,
+        "ml": 5.0,
+        "max": 10.0
+      },
+      "mean": 5.0,
+      "variance": 3.571428571428571
+    },
+    {
+      "name": "right-skew TEF",
+      "params": {
+        "min": 0.1,
+        "ml": 0.5,
+        "max": 4.0
+      },
+      "mean": 1.0166666666666668,
+      "variance": 0.3906746031746032
+    },
+    {
+      "name": "left-skew vuln",
+      "params": {
+        "min": 0.2,
+        "ml": 0.85,
+        "max": 0.95
+      },
+      "mean": 0.7583333333333333,
+      "variance": 0.015287698412698413
+    },
+    {
+      "name": "airframe-scale $",
+      "params": {
+        "min": 5000000.0,
+        "ml": 60000000.0,
+        "max": 250000000.0
+      },
+      "mean": 82500000.0,
+      "variance": 1854464285714285.8
+    }
+  ]
+}

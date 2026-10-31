@@ -1,0 +1,14 @@
+[
+  { "id": "L-LOS", "name": "LOS C2 datalink", "label": "LOS C2", "from": "N-GCS", "to": "N-UAV", "medium": "rf",
+    "states": ["nominal", "degraded", "denied", "spoofed"], "defaultState": "nominal" },
+  { "id": "L-BLOS", "name": "SATCOM C2 (BLOS)", "label": "SATCOM C2", "from": "N-C2", "to": "N-UAV", "via": ["N-SAT"], "medium": "rf",
+    "states": ["nominal", "degraded", "denied", "spoofed"], "defaultState": "nominal" },
+  { "id": "L-GNSS", "name": "GNSS downlink", "label": "GNSS", "from": "N-GNSS", "to": "N-UAV", "medium": "rf",
+    "states": ["nominal", "degraded", "denied", "spoofed"], "defaultState": "nominal" },
+  { "id": "L-TLM", "name": "Telemetry downlink", "label": "TLM", "from": "N-UAV", "to": "N-GCS", "medium": "rf",
+    "states": ["nominal", "degraded", "denied", "injected"], "defaultState": "nominal" },
+  { "id": "L-UPD", "name": "Firmware / software update path", "label": "SW UPDATE", "from": "N-SUP", "to": "N-UAV", "via": ["N-MX"], "medium": "logical",
+    "states": ["trusted", "compromised"], "defaultState": "trusted" },
+  { "id": "L-GCS-C2", "name": "Terrestrial network (GCS ↔ C2)", "label": "TERRESTRIAL NET", "from": "N-GCS", "to": "N-C2", "medium": "wired",
+    "states": ["nominal", "denied"], "defaultState": "nominal" }
+]

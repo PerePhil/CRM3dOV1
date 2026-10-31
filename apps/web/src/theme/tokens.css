@@ -1,0 +1,45 @@
+/*
+ * OV-1 design tokens: the ONLY place colors and fonts are defined (SPEC §8, AGENTS.md §6).
+ * Tailwind v4 turns every --color-* here into utilities (bg-friendly, text-hostile, …),
+ * and the 3D scene reads the same variables at runtime via theme/tokens.ts.
+ * Never put hex values in components.
+ */
+@theme {
+  /* ---- type ---- */
+  --font-ui: "Arimo", Arial, Helvetica, sans-serif;
+  --font-data: "JetBrains Mono", ui-monospace, monospace;
+
+  /* ---- affiliation (MIL-STD-2525 fill convention; SPEC §8.3) ---- */
+  --color-friendly: #80e0ff;
+  --color-friendly-strong: #0072bc;
+  --color-hostile: #ff8080;
+  --color-hostile-strong: #c8102e;
+  --color-neutral: #aaffaa;
+  --color-neutral-strong: #00a651;
+  --color-unknown: #ffff80;
+  --color-unknown-strong: #c9a400;
+
+  /* ---- link types (SPEC §8.2): color = type, NEVER red ---- */
+  --color-link-los: #00897b;
+  --color-link-blos: #6a1b9a;
+  --color-link-gnss: #3949ab;
+  --color-link-tlm: #ef6c00;
+  --color-link-upd: #6d4c41;
+  --color-link-gcs-c2: #37474f;
+
+  /* ---- OV-1 canvas ---- */
+  --color-sky-top: #bfdcf2;
+  --color-sky-bottom: #f4f9fd;
+  --color-ocean: #9cc7dd;
+  --color-land: #d9d0b4;
+  --color-outline: #1b1f24;
+
+  /* ---- briefing-slide chrome (SPEC §8.4–8.5) ---- */
+  --color-ink: #1b1f24;
+  --color-ink-muted: #5a6470;
+  --color-paper: #ffffff;
+  --color-paper-alt: #f3f4f6;
+  --color-rule: #1b1f24;
+  --color-banner-unclass: #007a33;
+  --color-banner-text: #ffffff;
+}

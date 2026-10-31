@@ -1,0 +1,40 @@
+{
+  "name": "@ov1/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "React Three Fiber OV-1 app.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p . && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@fontsource/arimo": "^5.2.0",
+    "@fontsource/jetbrains-mono": "^5.2.0",
+    "@ov1/catalog": "workspace:*",
+    "@ov1/core": "workspace:*",
+    "@ov1/risk": "workspace:*",
+    "@ov1/sim": "workspace:*",
+    "@react-three/drei": "^10.7.0",
+    "@react-three/fiber": "^9.3.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@tailwindcss/vite": "^4.1.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@types/three": "^0.180.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "tailwindcss": "^4.1.0",
+    "vite": "^7.1.0",
+    "vitest": "^3.2.0"
+  }
+}

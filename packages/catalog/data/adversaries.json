@@ -1,0 +1,8 @@
+[
+  { "id": "ADV-1", "name": "Nation-state EW unit", "kind": "nation-state-ew",
+    "description": "Notional composite modeled on public reporting of electronic warfare against UAVs. Executes jamming and GNSS spoofing." },
+  { "id": "ADV-2", "name": "Nation-state cyber operator (APT)", "kind": "nation-state-cyber",
+    "description": "Notional composite. Targets software supply chain, credentials, and ground segment data integrity." },
+  { "id": "ADV-3", "name": "Criminal ransomware affiliate", "kind": "criminal",
+    "description": "Notional composite; Boeing's 2023 LockBit incident is the public reference case." }
+]

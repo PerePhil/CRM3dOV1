@@ -1,0 +1,455 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Shared backlog: SEED FILE for GitHub Issues.
+#
+#   pnpm tasks:seed --dry-run      # preview
+#   pnpm tasks:seed                # create labels, milestones, and issues (idempotent)
+#
+# After seeding, GitHub Issues + the Project board are the LIVE to-do list.
+# Don't track progress here. Edit this file only to add tasks before (re)seeding;
+# the script skips any task whose title already exists as an issue.
+#
+# Fields: key (unique slug) · title · milestone · area · who (agent-ok | human-only)
+#         goal · in_scope[] · off_limits · acceptance[] · tests · depends[] (keys) · contract
+# ─────────────────────────────────────────────────────────────────────────────
+
+milestones:
+  M0: { title: "M0 — Foundations", due: "2026-11-08", description: "Repo live, contracts seeded, static OV-1 scene, ADRs 0001–0005, OV-1 refs collected" }
+  M1: { title: "M1 — Living OV-1", due: "2026-11-15", description: "Sim engine, S1–S3 animate end to end, link toggles + lost-link procedures, event log + replay" }
+  M2: { title: "M2 — Quantified", due: "2026-11-22", description: "S4–S6, Monte Carlo → Vuln, FAIR engine passing golden tests, risk drawer with LEC + ROSI" }
+  M3: { title: "M3 — Ship", due: "2026-11-24", description: "Polish, demo deep-links, report, deck + recorded backup demo, speaker map" }
+
+tasks:
+  # ═══════════════════════════════ M0 — Foundations ═══════════════════════════════
+  - key: setup-repo
+    title: "[infra] First push: lockfiles, branch protection, CODEOWNERS usernames"
+    milestone: M0
+    area: infra
+    who: human-only
+    goal: Get the repo live with the guardrails on, before anyone points an agent at it. See README → First-time setup.
+    in_scope: [pnpm-lock.yaml, analysis/uv.lock, .github/CODEOWNERS, .github/ISSUE_TEMPLATE/config.yml]
+    acceptance:
+      - "`pnpm install` + `(cd analysis && uv lock)` run; both lockfiles committed"
+      - "`pnpm verify` and `pnpm test:e2e` pass locally"
+      - "CODEOWNERS placeholders replaced with real usernames"
+      - "Branch protection on main: 1 approval, code-owner review, CI required, no force-push"
+      - "Jared and Ella added as collaborators"
+
+  - key: setup-cloudflare
+    title: "[infra] Cloudflare Pages project + preview secrets"
+    milestone: M0
+    area: infra
+    who: human-only
+    goal: Every PR gets a preview URL (SPEC §3.5).
+    in_scope: [.github/workflows/preview.yml]
+    acceptance:
+      - "Pages project `contested-ov1` exists"
+      - "Repo secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID set (token scoped to Pages:Edit only)"
+      - "A test PR gets a preview comment"
+    depends: [setup-repo]
+
+  - key: decide-ownership
+    title: "[docs] Decide area owners (Scene / Sim / Risk+Docs) and update CODEOWNERS"
+    milestone: M0
+    area: docs
+    who: human-only
+    goal: One accountable reviewer per area (SPEC §12).
+    in_scope: [SPEC.md, .github/CODEOWNERS]
+    acceptance:
+      - "SPEC §12 ownership item checked with names"
+      - "CODEOWNERS area lines uncommented with real usernames"
+    depends: [setup-repo]
+
+  - key: ov1-refs
+    title: "[docs] Collect 3–5 public OV-1 reference graphics"
+    milestone: M0
+    area: docs
+    who: human-only
+    goal: The visual reference set agents build the scene against (SPEC §8, §12).
+    in_scope: [docs/design/ov1-refs/]
+    acceptance:
+      - "3–5 public, unclassified OV-1 images saved with source URL + access date in the README table"
+      - "One-line note per image on what to borrow (link style, callouts, legend, layout)"
+
+  - key: verify-mappings
+    title: "[catalog] Verify ATT&CK for ICS technique IDs on every threat"
+    milestone: M0
+    area: catalog
+    who: human-only
+    goal: The IDs in threats.json were drafted from memory; each must be checked before anyone cites it.
+    in_scope: [packages/catalog/data/threats.json]
+    acceptance:
+      - "Every mapping checked against attack.mitre.org; wrong ones fixed"
+      - "`verified: true` only on checked mappings"
+      - "Consider EMB3D / SPARTA mappings for T-FW-MALWARE and T-JAM-C2"
+
+  - key: adr-0002-sim
+    title: "[docs] ADR-0002: fixed-timestep deterministic sim in a Web Worker"
+    milestone: M0
+    area: docs
+    who: agent-ok
+    goal: Record the sim architecture decision (SPEC §3.2) using docs/adr/0000-template.md.
+    in_scope: [docs/adr/0002-deterministic-sim.md]
+    acceptance:
+      - "Context, decision, alternatives (variable timestep, main-thread sim), consequences"
+      - "Status: Accepted"
+
+  - key: adr-0003-fair
+    title: "[docs] ADR-0003: TypeScript FAIR engine with Python cross-check"
+    milestone: M0
+    area: docs
+    who: agent-ok
+    goal: Record why the canonical FAIR engine is TS (live in browser) with Python golden vectors (SPEC §3.3–3.4).
+    in_scope: [docs/adr/0003-fair-engine.md]
+    acceptance: ["Covers pyfair/Pyodide alternatives and the drift risk the golden vectors mitigate"]
+
+  - key: adr-0004-charts
+    title: "[docs] ADR-0004: chart library (Observable Plot vs visx)"
+    milestone: M0
+    area: docs
+    who: agent-ok
+    goal: Draft both options with a small LEC prototype snippet each; a human picks.
+    in_scope: [docs/adr/0004-chart-library.md]
+    acceptance:
+      - "Status: Proposed, with a recommendation"
+      - "Bundle size, React fit, LEC log-axis support compared"
+      - "Human sets Accepted + closes SPEC §12 item"
+
+  - key: adr-0005-milsymbol
+    title: "[docs] ADR-0005: MIL-STD-2525 symbols via milsymbol, or plain labels"
+    milestone: M0
+    area: docs
+    who: agent-ok
+    goal: Decide the optional node symbology (SPEC §8.3).
+    in_scope: [docs/adr/0005-milsymbol.md]
+    acceptance: ["Status: Proposed; includes license check of milsymbol and a mock of one callout"]
+
+  - key: pin-actions
+    title: "[infra] Pin all GitHub Actions to full commit SHAs"
+    milestone: M0
+    area: infra
+    who: agent-ok
+    goal: Supply-chain hygiene for our own CI. We're modeling supply-chain compromise, so practice it.
+    in_scope: [.github/workflows/ci.yml, .github/workflows/preview.yml]
+    acceptance:
+      - "Every `uses:` pinned to a 40-char SHA with a `# vX.Y.Z` comment"
+      - "trufflehog no longer on @main"
+
+  - key: stix-bundle
+    title: "[catalog] Author STIX 2.1 bundle for adversaries, threats, controls"
+    milestone: M0
+    area: catalog
+    who: agent-ok
+    goal: Adversary profiles as STIX 2.1 (SPEC §5.5), generated from the catalog so they can't drift.
+    in_scope: [analysis/src/ov1_analysis/stix_build.py, analysis/tests/test_stix.py, packages/catalog/stix/bundle.json, packages/catalog/data/adversaries.json, analysis/pyproject.toml]
+    off_limits: "No schema.ts change: `stixId` already exists."
+    acceptance:
+      - "threat-actor per ADV-*, attack-pattern per T-*, course-of-action per C-*, relationships"
+      - "Bundle passes stix2-validator in a pytest"
+      - "Only verified framework mappings emitted as external_references"
+    depends: [verify-mappings]
+
+  - key: platform-models
+    title: "[scene] Better OV-1 platform icons (low-poly procedural or CC0)"
+    milestone: M0
+    area: scene
+    who: agent-ok
+    goal: Replace v0 boxes with recognizable flat-shaded silhouettes (UAV, carrier, satellite, GNSS sat, jammer ship, ops center).
+    in_scope: [apps/web/src/scene/platforms.tsx, apps/web/public/models/, apps/web/public/models/CREDITS.md]
+    off_limits: "No sim logic; no new colors outside tokens.css."
+    acceptance:
+      - "Matches SPEC §8.1 and the ov1-refs set"
+      - "Every non-procedural asset credited with license"
+      - "Screenshot in PR"
+    depends: [ov1-refs]
+
+  # ═══════════════════════════════ M1 — Living OV-1 ═══════════════════════════════
+  - key: link-model
+    title: "[sim] Link model: FSPL + J/S + link-state thresholds"
+    milestone: M1
+    area: sim
+    who: agent-ok
+    goal: Implement SPEC §6.1 as pure functions.
+    in_scope: [packages/sim/src/link.ts, packages/sim/src/link.test.ts, packages/sim/src/index.ts]
+    off_limits: "events.ts is frozen."
+    acceptance:
+      - "fsplDb(d, f) matches SPEC §6.1 (e.g. 1 km @ 2.4 GHz ≈ 100.05 dB)"
+      - "jsDb() includes processing gain G_p from controls"
+      - "linkState() boundary tests at θ_deg and θ_deny"
+    tests: Boundary + monotonicity tests.
+
+  - key: nav-model
+    title: "[sim] Navigation model: INS drift + GNSS spoof offset"
+    milestone: M1
+    area: sim
+    who: agent-ok
+    goal: True vs perceived position per SPEC §6.2, driving the ghost track.
+    in_scope: [packages/sim/src/nav.ts, packages/sim/src/nav.test.ts, packages/sim/src/index.ts]
+    acceptance:
+      - "Error grows e0 + k·(t − t_loss)² under denial"
+      - "Spoof pull capped at a drift rate; detector fires above threshold when C-MULTI-GNSS/C-XCHECK active"
+
+  - key: uav-kinematics
+    title: "[sim] UAV point-mass kinematics + waypoint following"
+    milestone: M1
+    area: sim
+    who: agent-ok
+    goal: Bank-limited turns and constant-airspeed waypoint following, in SI units.
+    in_scope: [packages/sim/src/kinematics.ts, packages/sim/src/kinematics.test.ts, packages/sim/src/index.ts]
+    acceptance: ["Turn radius obeys v²/(g·tan φ)", "Deterministic per seed"]
+
+  - key: lost-link
+    title: "[sim] Lost-link procedures as a state machine"
+    milestone: M1
+    area: sim
+    who: agent-ok
+    goal: rtb · loiter-then-rtb · continue-mission · land-immediate, emitting uav.mode events.
+    in_scope: [packages/sim/src/lostlink.ts, packages/sim/src/lostlink.test.ts, packages/sim/src/index.ts]
+    acceptance: ["Every transition emits uav.mode with a reason", "Link restore → mission resumes per procedure"]
+    depends: [uav-kinematics]
+
+  - key: sim-runner
+    title: "[sim] runSim(config, seed): tick loop, snapshots, event log"
+    milestone: M1
+    area: sim
+    who: agent-ok
+    goal: The engine entry point. Same (config, seed) → identical events and snapshots.
+    in_scope: [packages/sim/src/run.ts, packages/sim/src/config.ts, packages/sim/src/run.test.ts, packages/sim/src/index.ts]
+    acceptance:
+      - "Fixed 20 Hz tick; run.start / run.end emitted"
+      - "Snapshot stream for the renderer (positions, link states, perceived pos)"
+      - "Determinism test: two runs deep-equal"
+    depends: [link-model, nav-model, lost-link]
+
+  - key: scenarios-s1-s3
+    title: "[sim] Scenario behaviors S1 (jamming), S2 (spoofing), S3 (telemetry injection)"
+    milestone: M1
+    area: sim
+    who: agent-ok
+    goal: Threat behaviors and loss-event detection for S1–S3 (SPEC §5.3, §6.3).
+    in_scope: [packages/sim/src/scenarios/, packages/sim/src/run.ts]
+    acceptance: ["Each scenario emits threat.start, relevant link.state, and loss.event per its lossEvent", "Controls measurably change outcomes in tests"]
+    depends: [sim-runner]
+
+  - key: worker-bridge
+    title: "[scene] Comlink Web Worker bridge for sim + risk"
+    milestone: M1
+    area: scene
+    who: agent-ok
+    goal: Run sim and Monte Carlo off the main thread (SPEC §3.1).
+    in_scope: [apps/web/src/bridge/, apps/web/package.json]
+    acceptance: ["Add `comlink` (pre-approved)", "Worker returns event log + snapshots for a config/seed", "Main thread stays at 60fps during a 1000-trial run"]
+    depends: [sim-runner]
+
+  - key: app-store
+    title: "[scene] App state store + URL-hash share links"
+    milestone: M1
+    area: scene
+    who: agent-ok
+    goal: zustand store for scenario, seed, link overrides, threats, controls, lost-link; serialize to URL hash (SPEC §7).
+    in_scope: [apps/web/src/state/, apps/web/package.json]
+    acceptance: ["Add `zustand` (pre-approved)", "Reload with hash restores exact state", "Round-trip unit test"]
+
+  - key: link-state-render
+    title: "[scene] Link state patterns: degraded / denied ✕ / spoofed ⚠ + red false path"
+    milestone: M1
+    area: scene
+    who: agent-ok
+    goal: SPEC §8.2 line-pattern encoding driven by store/sim state.
+    in_scope: [apps/web/src/scene/LinkLine.tsx, apps/web/src/scene/glyphs.tsx]
+    acceptance: ["Animated flow dashes on nominal", "Red only for adversary-controlled states", "Screenshot per state in PR"]
+    depends: [app-store]
+
+  - key: threat-volumes
+    title: "[scene] Threat volumes: jamming domes and spoofing radius"
+    milestone: M1
+    area: scene
+    who: agent-ok
+    goal: Translucent hostile-red volumes with labeled edges (SPEC §8.3).
+    in_scope: [apps/web/src/scene/ThreatVolumes.tsx, apps/web/src/scene/Ov1Scene.tsx]
+    acceptance: ["Radius tied to jammer power slider", "Hidden when threat off"]
+    depends: [app-store]
+
+  - key: ghost-track
+    title: "[scene] Ghost track: perceived vs true UAV"
+    milestone: M1
+    area: scene
+    who: agent-ok
+    goal: Render the nav-model divergence as a red dashed ghost UAV and trail (SPEC §6.2, §8.2).
+    in_scope: [apps/web/src/scene/GhostTrack.tsx, apps/web/src/scene/Ov1Scene.tsx]
+    depends: [worker-bridge, nav-model]
+
+  - key: controls-panel
+    title: "[scene] Controls panel: link matrix, threat + control toggles, lost-link selector"
+    milestone: M1
+    area: scene
+    who: agent-ok
+    goal: Right panel per SPEC §7, all options sourced from @ov1/catalog.
+    in_scope: [apps/web/src/panels/ControlsPanel.tsx, apps/web/src/App.tsx]
+    acceptance: ["No hardcoded IDs", "Control costs shown", "Keyboard accessible"]
+    depends: [app-store]
+
+  - key: event-log-panel
+    title: "[scene] Telemetry + event log panel with replay scrubber"
+    milestone: M1
+    area: scene
+    who: agent-ok
+    goal: Truth vs perceived readouts, timestamped event stream, click-to-seek (SPEC §7).
+    in_scope: [apps/web/src/panels/TelemetryPanel.tsx, apps/web/src/panels/EventLog.tsx, apps/web/src/App.tsx]
+    depends: [worker-bridge]
+
+  - key: live-legend
+    title: "[scene] Live legend + title block bound to scenario/seed"
+    milestone: M1
+    area: scene
+    who: agent-ok
+    goal: Legend adds entries as threats activate; title block shows real scenario + seed (SPEC §8.4).
+    in_scope: [apps/web/src/components/Legend.tsx, apps/web/src/components/TitleBlock.tsx, apps/web/src/App.tsx]
+    depends: [app-store]
+
+  - key: camera-presets
+    title: "[scene] Camera presets + 'reset to slide'"
+    milestone: M1
+    area: scene
+    who: agent-ok
+    goal: Overview, UAV chase, GCS view, and one-click return to the OV-1 slide view (SPEC §7).
+    in_scope: [apps/web/src/scene/CameraRig.tsx, apps/web/src/scene/Ov1Scene.tsx, apps/web/src/scene/layout.ts]
+
+  # ═══════════════════════════════ M2 — Quantified ═══════════════════════════════
+  - key: scenarios-s4-s6
+    title: "[sim] Scenario behaviors S4 (FW malware), S5 (stolen cred), S6 (ransomware)"
+    milestone: M2
+    area: sim
+    who: agent-ok
+    goal: Cyber-side scenarios with loss-event detection (SPEC §5.3).
+    in_scope: [packages/sim/src/scenarios/]
+    depends: [scenarios-s1-s3]
+
+  - key: monte-carlo-vuln
+    title: "[sim] Headless Monte Carlo → Vuln estimate with Wilson CI"
+    milestone: M2
+    area: sim
+    who: agent-ok
+    goal: SPEC §6.3. N seeded trials via rng.fork(i) → loss-event fraction + 95% Wilson interval.
+    in_scope: [packages/sim/src/montecarlo.ts, packages/sim/src/montecarlo.test.ts, packages/sim/src/index.ts]
+    acceptance: ["Order-independent (parallel-safe) per-trial seeds", "Wilson CI unit-tested against known values"]
+    depends: [scenarios-s1-s3]
+
+  - key: fair-estimates
+    title: "[docs] Source FAIR estimates: TEF, TCap, primary + secondary loss per scenario"
+    milestone: M2
+    area: docs
+    who: human-only
+    goal: Every min/ML/max has a citation or written rationale (SPEC §6.4). This is where the grade is earned.
+    in_scope: [docs/fair/, packages/catalog/data/adversaries.json, packages/catalog/data/controls.json]
+    acceptance:
+      - "One docs/fair/<scenario>.md per S1–S6 using the template"
+      - "Control annual costs sourced"
+      - "Strategic impact on the 1–5 Mission Impact scale, not in dollars"
+
+  - key: fair-engine
+    title: "[risk] FAIR Monte Carlo: LEF, LM (primary + secondary), ALE, LEC"
+    milestone: M2
+    area: risk
+    who: agent-ok
+    goal: SPEC §6.4 using samplePert/sampleLognormal; consumes sim Vuln.
+    in_scope: [packages/risk/src/fair.ts, packages/risk/src/fair.test.ts, packages/risk/src/index.ts]
+    acceptance: ["Seeded and deterministic", "Per-scenario contributions + total ALE summary + LEC", "Matches fair-golden within tolerance"]
+    depends: [monte-carlo-vuln]
+
+  - key: fair-golden
+    title: "[risk] Python reference for ALE pipeline → golden vectors"
+    milestone: M2
+    area: risk
+    who: agent-ok
+    goal: Independent numpy implementation of the FAIR pipeline; TS must match (SPEC §3.4).
+    in_scope: [analysis/src/ov1_analysis/fair_ref.py, analysis/src/ov1_analysis/golden.py, analysis/tests/, fixtures/risk/]
+    acceptance: ["Analytic expected ALE for fixed-Vuln cases", "`pnpm golden` regenerates; test fails on stale fixture"]
+
+  - key: rosi
+    title: "[risk] Control comparison + ROSI distribution"
+    milestone: M2
+    area: risk
+    who: agent-ok
+    goal: ALE before/after control sets and a ROSI distribution, not a point estimate (SPEC §6.5).
+    in_scope: [packages/risk/src/compare.ts, packages/risk/src/compare.test.ts, packages/risk/src/index.ts]
+    depends: [fair-engine]
+
+  - key: risk-drawer
+    title: "[scene] Risk drawer: Vuln ± CI, ALE percentiles, LEC overlay, ROSI"
+    milestone: M2
+    area: scene
+    who: agent-ok
+    goal: SPEC §7. Baseline in hostile red, with-controls in friendly blue.
+    in_scope: [apps/web/src/panels/RiskDrawer.tsx, apps/web/src/App.tsx, apps/web/package.json]
+    acceptance: ["Uses ADR-0004 library", "Runs in worker", "Headline chart: with/without the $4M team"]
+    depends: [rosi, worker-bridge, adr-0004-charts]
+
+  - key: threat-docs-gen
+    title: "[docs] Generate STRIDE tables + Mermaid attack trees from the catalog"
+    milestone: M2
+    area: docs
+    who: agent-ok
+    goal: docs/threat-model/ built from @ov1/catalog so docs never drift from code.
+    in_scope: [scripts/gen-threat-docs.mjs, docs/threat-model/, package.json]
+    acceptance: ["`pnpm docs:threats` regenerates", "One attack tree per scenario", "STRIDE × asset matrix"]
+
+  - key: mission-impact
+    title: "[docs] Define the 1–5 Mission Impact scale and score each scenario"
+    milestone: M2
+    area: docs
+    who: human-only
+    goal: The non-monetary strategic axis (SPEC §6.4).
+    in_scope: [docs/fair/mission-impact.md, packages/catalog/data/scenarios.json]
+
+  # ═══════════════════════════════ M3 — Ship ═══════════════════════════════
+  - key: demo-links
+    title: "[scene] Curated demo deep-links for the presentation"
+    milestone: M3
+    area: scene
+    who: agent-ok
+    goal: A 'Demo' menu of named share URLs (one per talking point) so the live demo can't go off-script.
+    in_scope: [apps/web/src/panels/DemoMenu.tsx, apps/web/src/demo-links.ts]
+    depends: [app-store, risk-drawer]
+
+  - key: e2e-presets
+    title: "[infra] Playwright: run every preset + screenshot"
+    milestone: M3
+    area: infra
+    who: agent-ok
+    goal: CI proves each scenario loads, runs, and renders.
+    in_scope: [apps/web/e2e/]
+    depends: [demo-links]
+
+  - key: visual-polish
+    title: "[scene] Visual polish pass against the OV-1 reference set"
+    milestone: M3
+    area: scene
+    who: agent-ok
+    in_scope: [apps/web/src/scene/, apps/web/src/components/, apps/web/src/theme/tokens.css]
+    goal: Final pass on spacing, label collisions, outlines, and legend.
+    depends: [platform-models]
+
+  - key: report
+    title: "[docs] Final written report"
+    milestone: M3
+    area: docs
+    who: human-only
+    goal: Consultant-style deliverable with methodology (STRIDE + FAIR + STIX), results, recommendations, limitations.
+    in_scope: [docs/report/]
+    acceptance: ["References in the course format", "Figures generated by analysis/ scripts"]
+
+  - key: deck-recording
+    title: "[docs] Presentation deck + recorded backup demo"
+    milestone: M3
+    area: docs
+    who: human-only
+    goal: Live demo plan with a recorded fallback in case the venue network or GPU fails.
+    in_scope: [docs/report/]
+
+  - key: speaker-map
+    title: "[docs] Speaker map: each member owns a section + app segment"
+    milestone: M3
+    area: docs
+    who: human-only
+    goal: Every member must speak (course requirement). Assign sections and rehearse.
+    in_scope: [docs/report/presentation-plan.md]

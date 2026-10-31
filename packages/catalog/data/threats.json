@@ -1,0 +1,27 @@
+[
+  { "id": "T-JAM-C2", "name": "RF jamming of C2 links", "stride": ["D"],
+    "targets": { "links": ["L-LOS", "L-BLOS"] }, "adversaries": ["ADV-1"],
+    "description": "Jammer raises J/S on the UAV's C2 receivers until links degrade or deny, forcing lost-link behavior.",
+    "mappings": [ { "framework": "attack-ics", "id": "T0814", "name": "Denial of Service", "verified": false } ] },
+  { "id": "T-GNSS-SPOOF", "name": "GNSS spoofing", "stride": ["S", "T"],
+    "targets": { "links": ["L-GNSS"] }, "adversaries": ["ADV-1"],
+    "description": "Counterfeit GNSS signals drag the perceived position away from truth at a rate below detector thresholds.",
+    "mappings": [ { "framework": "attack-ics", "id": "T0856", "name": "Spoof Reporting Message", "verified": false } ] },
+  { "id": "T-TLM-INJECT", "name": "False telemetry injection (data poisoning)", "stride": ["S", "T"],
+    "targets": { "links": ["L-TLM"], "nodes": ["N-GCS"] }, "adversaries": ["ADV-2"],
+    "description": "Forged telemetry reaches the GCS so operators decide on false data.",
+    "mappings": [ { "framework": "attack-ics", "id": "T0832", "name": "Manipulation of View", "verified": false } ] },
+  { "id": "T-FW-MALWARE", "name": "Malware in flight control software via compromised signed update", "stride": ["T", "E"],
+    "targets": { "links": ["L-UPD"], "nodes": ["N-SUP", "N-UAV"] }, "adversaries": ["ADV-2"],
+    "description": "A compromised build carries a valid signature through delivery and is loaded onto the flight computer.",
+    "mappings": [
+      { "framework": "attack-ics", "id": "T0862", "name": "Supply Chain Compromise", "verified": false },
+      { "framework": "attack-ics", "id": "T0839", "name": "Module Firmware", "verified": false } ] },
+  { "id": "T-CRED-MX", "name": "Stolen maintenance credential", "stride": ["S", "E", "I"],
+    "targets": { "nodes": ["N-MX", "N-GCS"] }, "adversaries": ["ADV-2"],
+    "description": "A valid maintenance credential enables exfiltration or sabotage depending on its privilege.",
+    "mappings": [ { "framework": "attack-ics", "id": "T0859", "name": "Valid Accounts", "verified": false } ] },
+  { "id": "T-RANSOM-GCS", "name": "Ransomware on GCS / C2 servers", "stride": ["D", "R"],
+    "targets": { "nodes": ["N-GCS", "N-C2"], "links": ["L-GCS-C2"] }, "adversaries": ["ADV-3"],
+    "description": "Ransomware disables ground control and C2 services and destroys or encrypts mission records." }
+]

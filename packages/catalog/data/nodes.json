@@ -1,0 +1,23 @@
+[
+  { "id": "N-UAV", "name": "UAV airframe (MQ-25-class, carrier-based)", "label": "UAV", "kind": "uav", "affiliation": "friendly",
+    "description": "Generic carrier-based uncrewed aircraft. Notional; not a model of any real program's internals.",
+    "subsystems": ["flight computer", "autonomy", "GNSS receiver", "INS", "crypto module", "black box / telemetry store"] },
+  { "id": "N-GCS", "name": "Ground / ship control station", "label": "GCS", "kind": "gcs", "affiliation": "friendly",
+    "description": "Operator console and mission planning aboard the carrier.", "subsystems": ["operator console", "mission planner", "datalink terminal"] },
+  { "id": "N-C2", "name": "C2 servers + mission data store", "label": "C2 / MISSION DATA", "kind": "c2", "affiliation": "friendly",
+    "description": "Shore-side operations center hosting C2 services and mission data.", "subsystems": ["C2 server", "mission data store"] },
+  { "id": "N-SAT", "name": "SATCOM relay", "label": "SATCOM", "kind": "satcom", "affiliation": "friendly",
+    "description": "Beyond-line-of-sight C2 relay." },
+  { "id": "N-GNSS", "name": "GNSS constellation", "label": "GNSS", "kind": "gnss", "affiliation": "neutral",
+    "description": "Positioning source. Shared/civil infrastructure, so neutral affiliation." },
+  { "id": "N-SUP", "name": "Software / firmware supply chain", "label": "SW SUPPLY CHAIN", "kind": "supply-chain", "affiliation": "friendly",
+    "description": "Build → sign → deliver → deploy pipeline for flight software and firmware.", "subsystems": ["build", "signing", "distribution"] },
+  { "id": "N-MX", "name": "Maintenance terminal", "label": "MAINTENANCE", "kind": "maintenance", "affiliation": "friendly",
+    "description": "Credentialed maintenance access to the aircraft and GCS; loads software updates." },
+  { "id": "N-ADV-JAM", "name": "Adversary EW jammer", "label": "JAMMER", "kind": "adversary-jammer", "affiliation": "hostile",
+    "description": "Ground or airborne RF jammer targeting C2 and GNSS links." },
+  { "id": "N-ADV-SPOOF", "name": "Adversary GNSS spoofer", "label": "SPOOFER", "kind": "adversary-spoofer", "affiliation": "hostile",
+    "description": "Transmits counterfeit GNSS signals to pull the UAV's navigation solution." },
+  { "id": "N-ADV-CYBER", "name": "Adversary cyber operator", "label": "CYBER OP", "kind": "adversary-cyber", "affiliation": "hostile",
+    "description": "Remote operator targeting the supply chain, credentials, GCS, and C2 networks." }
+]

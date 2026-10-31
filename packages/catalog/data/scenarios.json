@@ -1,0 +1,14 @@
+[
+  { "id": "S1", "name": "Jamming → lost-link", "description": "LOS and BLOS C2 jammed; UAV executes its lost-link procedure.",
+    "threats": ["T-JAM-C2"], "lossEvent": "Airframe lost, or mission aborted before objective", "defaultLostLink": "rtb" },
+  { "id": "S2", "name": "GNSS spoofing → nav drift", "description": "Spoofer drags the navigation solution off the planned route.",
+    "threats": ["T-GNSS-SPOOF"], "lossEvent": "Route deviation beyond tolerance, or airframe lost", "defaultLostLink": "rtb" },
+  { "id": "S3", "name": "False telemetry injection", "description": "Operators act on forged telemetry at the GCS.",
+    "threats": ["T-TLM-INJECT"], "lossEvent": "Operator issues a harmful command based on false data", "defaultLostLink": "rtb" },
+  { "id": "S4", "name": "Flight software malware (supply chain)", "description": "Compromised signed update reaches the flight computer.",
+    "threats": ["T-FW-MALWARE"], "lossEvent": "Malicious behavior executes in flight (crash, tamper, or exfil)", "defaultLostLink": "rtb" },
+  { "id": "S5", "name": "Stolen maintenance credential", "description": "Valid credential used for exfiltration or sabotage.",
+    "threats": ["T-CRED-MX"], "lossEvent": "Mission or technical data exfiltrated, or configuration sabotaged", "defaultLostLink": "rtb" },
+  { "id": "S6", "name": "Ransomware on GCS / C2", "description": "Ground segment encrypted; C2 and mission records unavailable.",
+    "threats": ["T-RANSOM-GCS"], "lossEvent": "C2 unavailable beyond recovery-time objective", "defaultLostLink": "loiter-then-rtb" }
+]

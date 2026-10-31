@@ -1,0 +1,33 @@
+{
+  "name": "contested-ov1",
+  "private": true,
+  "type": "module",
+  "description": "3D interactive DoDAF OV-1 for cyber risk modeling of UAV operations in contested environments (CMU Cyber Risk Modeling group project).",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @ov1/web dev",
+    "build": "pnpm -r --if-present build",
+    "test": "pnpm -r --if-present test",
+    "test:py": "uv run --project analysis pytest analysis -q",
+    "test:e2e": "pnpm --filter @ov1/web test:e2e",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check": "biome ci .",
+    "fix": "biome check --write .",
+    "guard:determinism": "node scripts/guard-determinism.mjs",
+    "guard:contract": "node scripts/guard-contract.mjs",
+    "golden": "uv run --project analysis python -m ov1_analysis.golden",
+    "verify": "pnpm check && pnpm guard:determinism && pnpm typecheck && pnpm test && pnpm test:py && pnpm build",
+    "tasks:seed": "node scripts/seed-tasks.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.0",
+    "typescript": "^6.0.0",
+    "vitest": "^3.2.0",
+    "yaml": "^2.8.0"
+  }
+}
