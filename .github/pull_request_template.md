@@ -22,5 +22,5 @@ Closes #
 ## New dependencies (if any)
 <!-- package — why it's needed — why not hand-roll -->
 
-## Screenshots / preview
-<!-- Cloudflare preview link is auto-commented once secrets are configured -->
+## Screenshots
+<!-- There are no preview deploys. Attach a screenshot, or point reviewers to the `ov1-slide-view` artifact on this PR's CI run. -->

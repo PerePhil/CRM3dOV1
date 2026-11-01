@@ -16,7 +16,7 @@ to-do list to `main`.
 ## Rules of thumb
 - **Small PRs.** One issue, one PR. If an agent's diff sprawls, close it and split the issue.
 - **Reviewing agent PRs:** check scope first (did it touch files outside the list?), then tests, then
-  logic. Pull the branch and run it for anything visual.
+  logic. For anything visual, check the screenshot (below), and pull the branch and run it if in doubt.
 - **Lockfile conflicts:** never hand-merge. `git checkout origin/main -- pnpm-lock.yaml && pnpm install`,
   then commit.
 - **Contract changes** (`schema.ts`, `events.ts`, `rng.ts`): open a `contract`-labeled issue first,
@@ -24,6 +24,30 @@ to-do list to `main`.
 - **Need a new task?** Open an issue with the *Task* template. Precise **Files in scope** and
   **Acceptance criteria** are what make an agent succeed.
 - **Stuck agent?** Don't let it widen scope. Comment the blocker on the issue and ask the group.
+
+## Reviewing visual changes
+There are no preview deploys. Every PR's CI run produces the evidence instead:
+1. Open the PR's **Checks** tab → the **CI** workflow run → **Artifacts**.
+2. Download **`ov1-slide-view`**: a PNG of the OV-1 slide view, taken by the Playwright smoke test
+   against a production build served with the production CSP.
+3. If something looks off, pull the branch and run `pnpm dev` (or `pnpm --filter @ov1/web build &&
+   pnpm --filter @ov1/web preview` to see it exactly as it will ship). `playwright-report` has traces
+   when e2e fails.
+
+## Public site & deploys
+- **URL:** <https://contested-ov1.pages.dev> (Cloudflare Pages project `contested-ov1`).
+- **When it updates:** on every merge to `main`, via `.github/workflows/deploy.yml`. Nothing else
+  deploys: no PR deploys, no branch deploys. Merging to `main` *is* publishing, so review accordingly.
+- **Secrets:** `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` live only in the `production` GitHub
+  Environment (restricted to `main`). Never add them as repository secrets; that would expose them to
+  every workflow on every branch.
+- **No source on the public site:** production builds have no source maps, and CI's `guard:dist` step
+  fails if any `.map` file appears in `apps/web/dist`.
+- **Headers:** `apps/web/public/_headers` sets a strict CSP (no `unsafe-eval`, no `unsafe-inline`) and
+  the other security headers. `vite preview` serves the same file, so the e2e smoke test fails on any
+  CSP violation. If a new feature needs a CSP change, change `_headers` in the PR and say why.
+- **Search engines:** `X-Robots-Tag: noindex` and `robots.txt` keep the site unindexed until the class
+  reveal. Remove both then.
 
 ## Labels
 | Label | Meaning |
@@ -40,4 +64,7 @@ to-do list to `main`.
   `verify`, `e2e`, `contract-guard`, `secrets-scan`; dismiss stale approvals; block force-push and deletion.
 - **Merge button:** squash only; auto-delete head branches.
 - **Secret scanning + push protection:** on (Settings → Code security).
+- **`production` Environment** (Settings → Environments): deployment branches limited to `main`; holds
+  the `CLOUDFLARE_API_TOKEN` (Pages: Edit only) and `CLOUDFLARE_ACCOUNT_ID` secrets. No Cloudflare
+  repository secrets.
 - **Collaborators:** Jared, Ella with *Write*.
