@@ -1,5 +1,6 @@
 import { catalog } from "@ov1/catalog";
 import { ClassificationBanner } from "./components/ClassificationBanner";
+import { Disclaimer } from "./components/Disclaimer";
 import { Legend } from "./components/Legend";
 import { Panel } from "./components/Panel";
 import { TitleBlock } from "./components/TitleBlock";
@@ -55,6 +56,7 @@ export function App() {
         </Panel>
       </main>
 
+      <Disclaimer />
       <ClassificationBanner position="bottom" />
     </div>
   );

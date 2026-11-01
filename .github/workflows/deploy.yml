@@ -1,0 +1,98 @@
+name: deploy
+
+# Production deploy of the public site (https://contested-ov1.pages.dev) to Cloudflare Pages.
+# Runs only on push to main. There are no PR or branch preview deploys; review visual changes
+# with the ov1-slide-view screenshot artifact from CI.
+#
+# Secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID live in the `production` GitHub
+# Environment (restricted to main), never in repository secrets. Only the deploy job enters that
+# environment; the build job never sees them. If they're missing, the deploy skips cleanly.
+
+on:
+  push:
+    branches: [main]
+
+# One production deploy at a time. Never cancel a deploy mid-upload; a newer push waits, and
+# GitHub keeps only the newest pending run, so the latest main always ends up live.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  PAGES_PROJECT: contested-ov1
+
+jobs:
+  build:
+    name: build apps/web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @ov1/web build
+      - name: No source maps; _headers and robots.txt present
+        run: pnpm guard:dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: apps/web/dist
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    name: deploy to Cloudflare Pages (production)
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.deployment-url }}
+    steps:
+      - name: Check Cloudflare secrets
+        id: cf
+        env:
+          TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          ACCOUNT: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$ACCOUNT" ]; then
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID not set in the production environment; skipping deploy."
+          else
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          fi
+      # No checkout here: the job deploys exactly what the build job produced. (It also keeps
+      # wrangler-action from trying `pnpm add wrangler` at the workspace root, which pnpm refuses.)
+      - uses: actions/download-artifact@v4
+        if: steps.cf.outputs.enabled == 'true'
+        with:
+          name: web-dist
+          path: dist
+      - name: Deploy
+        id: deploy
+        if: steps.cf.outputs.enabled == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.154.0"
+          command: pages deploy dist --project-name=${{ env.PAGES_PROJECT }} --branch=main --commit-hash=${{ github.sha }}
+      - name: Print deployment URL
+        if: steps.cf.outputs.enabled == 'true'
+        env:
+          URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          echo "Deployment URL: $URL"
+          echo "Production: https://${PAGES_PROJECT}.pages.dev"
+          {
+            echo "### Deployed to Cloudflare Pages"
+            echo "- Deployment: $URL"
+            echo "- Production: https://${PAGES_PROJECT}.pages.dev"
+          } >> "$GITHUB_STEP_SUMMARY"

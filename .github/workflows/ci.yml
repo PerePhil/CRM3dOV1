@@ -27,6 +27,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: uv sync --project analysis --locked
       - run: pnpm verify
+      # pnpm verify ends with the build, so apps/web/dist exists here.
+      - name: dist-guard (no source maps; _headers and robots.txt present)
+        run: pnpm guard:dist
 
   e2e:
     name: e2e smoke (Playwright)

@@ -20,6 +20,7 @@
     "fix": "biome check --write .",
     "guard:determinism": "node scripts/guard-determinism.mjs",
     "guard:contract": "node scripts/guard-contract.mjs",
+    "guard:dist": "node scripts/guard-dist.mjs",
     "golden": "uv run --project analysis python -m ov1_analysis.golden",
     "verify": "pnpm check && pnpm guard:determinism && pnpm typecheck && pnpm test && pnpm test:py && pnpm build",
     "tasks:seed": "node scripts/seed-tasks.mjs"

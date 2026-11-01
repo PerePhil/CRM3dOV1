@@ -10,6 +10,10 @@ Due 24 Nov 2026 · **[SPEC.md](SPEC.md) is the source of truth.**
 > `UNCLASSIFIED // NOTIONAL — ACADEMIC USE`. Open-source information only. No CUI, no
 > export-controlled technical data, no employer data. See SPEC §10.
 
+**Public site:** <https://contested-ov1.pages.dev>. It updates automatically on every merge to `main`
+(`.github/workflows/deploy.yml`). There are **no preview deploys** for PRs or branches. The GitHub repo
+stays private, and production builds ship no source maps.
+
 ---
 
 ## Quickstart
@@ -28,7 +32,7 @@ Or open the repo in a **devcontainer** (VS Code / Codespaces), which installs ev
 - **Environment network:** limited / Trusted, with package managers on. Don't use full access.
 - **Environment setup script:** leave it empty. It runs as root *outside* the repo before Claude starts, so it can't install project deps.
 - **Project deps** install automatically through the SessionStart hook in `.claude/settings.json` → `scripts/cloud-setup.sh` (cloud only; no-op locally).
-- **Viewing changes:** the Cloudflare preview URL on the PR/branch, or ask Claude for a Playwright screenshot.
+- **Viewing changes:** download the `ov1-slide-view` screenshot artifact from the PR's CI run, or ask Claude for a Playwright screenshot. See [CONTRIBUTING.md](CONTRIBUTING.md#reviewing-visual-changes).
 
 > ⚠️ **Push with the git CLI, not GitHub's web uploader or Finder drag-and-drop.** Both silently drop dotfiles
 > (`.github/`, `.gitignore`, `.claude/`, …), which removes CI, the guardrails, and the agent config.
@@ -53,8 +57,10 @@ Or open the repo in a **devcontainer** (VS Code / Codespaces), which installs ev
 4. **Turn on branch protection** for `main` (settings listed in [CONTRIBUTING.md](CONTRIBUTING.md#repo-settings-owner-sets-these-once-they-arent-files)).
 5. **Seed the shared to-do list:** `gh auth login`, then `pnpm tasks:seed --dry-run`, then `pnpm tasks:seed`.
 6. **Create the Project board** (next section) and add the issues.
-7. *(Optional)* **Cloudflare preview deploys:** create a Pages project `contested-ov1` and add the
-   `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repo secrets. Until then, the preview workflow skips cleanly.
+7. **Production deploys (Cloudflare Pages):** create the Pages project `contested-ov1` (production branch
+   `main`). In GitHub, create a `production` **Environment** restricted to the `main` branch and add
+   `CLOUDFLARE_API_TOKEN` (scoped to *Cloudflare Pages: Edit*) and `CLOUDFLARE_ACCOUNT_ID` as **environment
+   secrets**. Never add them as repository secrets. Until they exist, the deploy workflow skips cleanly.
 8. Add Jared and Ella as collaborators and send them this README.
 
 ---
@@ -124,7 +130,7 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 |---|---|
 | `.claude/settings.json` | Shared Claude Code permissions. Registers the cloud **SessionStart hook**; allows pnpm/uv/git-read commands; **denies** reading `.env`/keys, force-push, pushing to main, `rm -rf`, and npm/yarn/pip. Personal overrides go in `.claude/settings.local.json` (gitignored). |
 | `.devcontainer/devcontainer.json` | Identical environment for everyone and every cloud agent: Node 22, Python 3.13, uv, gh, Playwright Chromium, Biome/Ruff extensions. |
-| `.node-version` | Pins Node 22 for nvm/fnm/volta, CI, and Cloudflare. |
+| `.node-version` | Pins Node 22 for nvm/fnm/volta, CI, and the deploy build. |
 | `package.json` → `packageManager` | Pins the pnpm version via corepack. |
 
 ### Tooling & config
@@ -141,8 +147,8 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 ### CI, review & coordination (`.github/`)
 | File | Purpose |
 |---|---|
-| `workflows/ci.yml` | On every PR: **verify** (`pnpm verify`), **e2e** (Playwright smoke + report artifact), **contract-guard**, **secrets-scan** (TruffleHog). |
-| `workflows/preview.yml` | Builds and deploys each PR to Cloudflare Pages, then comments the URL. Skips cleanly until secrets exist. |
+| `workflows/ci.yml` | On every PR: **verify** (`pnpm verify` + `pnpm guard:dist`), **e2e** (Playwright smoke under the production CSP, plus the `ov1-slide-view` screenshot and report artifacts), **contract-guard**, **secrets-scan** (TruffleHog). |
+| `workflows/deploy.yml` | On push to `main` only: builds `apps/web`, runs the dist guard, and deploys to Cloudflare Pages production (<https://contested-ov1.pages.dev>) from the `production` environment. Serialized with `concurrency`; skips cleanly if the secrets are missing. No PR or branch deploys. |
 | `CODEOWNERS` | Who must approve what. Contracts, agent rules, and CI guardrails need the contract steward. |
 | `ISSUE_TEMPLATE/agent-task.yml` | Task form with required **Files in scope**, acceptance criteria, tests, and dependencies. This is what makes agent tasks precise. |
 | `ISSUE_TEMPLATE/bug.yml` | Bug form; asks for scenario + seed so bugs reproduce deterministically. |
@@ -154,6 +160,7 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 |---|---|
 | `scripts/guard-determinism.mjs` | Fails if `Math.random`, `Date.now`, `new Date()`, `performance.now`, or `crypto.getRandomValues` appear in `packages/{core,sim,risk}`. |
 | `scripts/guard-contract.mjs` | Fails if a frozen contract file changed without a `SPEC.md` change in the same PR. |
+| `scripts/guard-dist.mjs` | Fails if the `apps/web/dist` build contains any `.map` file, or is missing `_headers` / `robots.txt`. |
 | `scripts/cloud-setup.sh` | Installs pnpm + uv deps at the start of every Claude Code cloud session (via the SessionStart hook). No-op elsewhere. |
 | `scripts/seed-tasks.mjs` | Creates labels, milestones, and issues from the backlog (`--dry-run` to preview). |
 | `tasks/backlog.yaml` | The shared to-do list seed: 42 scoped tasks across M0–M3. |
@@ -165,7 +172,7 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 | `packages/catalog/` | **The contract.** `src/schema.ts` (**frozen** zod schemas with referential-integrity checks) + `data/*.json` (10 nodes, 6 links, 6 threats, 10 controls, 3 adversaries, S1–S6). `stix/` holds the STIX 2.1 bundle. |
 | `packages/sim/` | `events.ts`: **frozen** event-log contract. `log.ts`: append-only, immutable log. Link, nav, kinematics, and lost-link models arrive via M1 tasks. |
 | `packages/risk/` | Beta-PERT / Gamma / Beta / lognormal samplers, summaries, loss exceedance, ROSI. FAIR pipeline arrives via M2 tasks. |
-| `apps/web/` | Vite + React Three Fiber OV-1. `theme/tokens.css` is the only place colors and fonts live. `scene/` has the diorama layout, lightning-bolt links, platform icons, and callouts. `components/` has the banner, title block, legend, and panels. `e2e/` has the Playwright smoke test. |
+| `apps/web/` | Vite + React Three Fiber OV-1. `theme/tokens.css` is the only place colors and fonts live. `scene/` has the diorama layout, lightning-bolt links, platform icons, and callouts. `components/` has the banner, title block, legend, and panels. `e2e/` has the Playwright smoke test. `public/_headers` sets the CSP and security headers on Cloudflare Pages (and on `vite preview`, so e2e runs under the same CSP); `public/robots.txt` blocks crawlers until the class reveal. |
 | `analysis/` | Python (uv): `golden.py` generates reference vectors from scipy; pytest proves the committed fixture isn't stale. |
 | `fixtures/risk/pert_golden.json` | Generated golden vectors; the TS PERT tests must match them. |
 
@@ -190,4 +197,5 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 | `pnpm test` · `pnpm test:py` · `pnpm test:e2e` | TS unit · Python · Playwright |
 | `pnpm golden` | Regenerate golden vectors from Python |
 | `pnpm guard:contract` | Run the contract guard locally against `origin/main` |
+| `pnpm guard:dist` | After a build: fail on source maps or missing `_headers` / `robots.txt` in `apps/web/dist` |
 | `pnpm tasks:seed [--dry-run]` | Seed the to-do list into GitHub Issues |

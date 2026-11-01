@@ -1,0 +1,4 @@
+# Keep the site out of search engines until the class reveal.
+# REMOVE this Disallow at the class reveal (and the X-Robots-Tag: noindex line in _headers).
+User-agent: *
+Disallow: /
