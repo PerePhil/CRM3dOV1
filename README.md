@@ -179,7 +179,7 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 ### Docs
 | Path | Purpose |
 |---|---|
-| `docs/adr/` | Architecture Decision Records. `0000-template.md`, plus `0001` (R3F over Cesium, accepted). 0002–0005 are backlog tasks. `0006` (animation timelines, proposed). |
+| `docs/adr/` | Architecture Decision Records. `0000-template.md`, plus `0001` (R3F over Cesium, accepted). 0002–0005 are backlog tasks. `0006` (animation timelines, accepted). |
 | `docs/animation/` | How the OV-1 animates: architecture (`README.md`), adding a scenario animation (`authoring.md`), and wiring new scene elements or the sim into playback (`extending.md`). |
 | `docs/fair/` | Where every FAIR estimate's source lives (`_template.md` per scenario). No unsourced numbers. |
 | `docs/design/ov1-refs/` | The OV-1 visual reference set agents build against. |

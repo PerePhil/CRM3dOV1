@@ -1,6 +1,6 @@
 # ADR-0006: Declarative timelines + a pure interpreter for scene animation
 
-- **Status:** Proposed
+- **Status:** Accepted (SPEC v0.4, §3.6)
 - **Date:** 2026-11-03
 - **Deciders:** Project team
 - **SPEC sections affected:** §1, §3.1, §3.2 ("the renderer interpolates between ticks"), §7 (play / pause / scrub / speed), §8
@@ -40,4 +40,4 @@ never authored. Lives in `apps/web/src/anim/`. Guide: `docs/animation/`.
   compatible, and every registered timeline is validated in CI.
 - Playback time uses the wall clock (presentation state), while frame contents stay a pure function of
   time, so screenshots at a given `t` are reproducible.
-- If SPEC §3.1 / §7 should name this layer, that's a SPEC edit for a human to make.
+- SPEC §3.6 / §7 / §9 and AGENTS.md §6.1 point agents at this layer.

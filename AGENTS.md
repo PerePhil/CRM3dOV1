@@ -26,14 +26,15 @@ Use **pnpm only**, never npm or yarn. Python runs through **uv** (`uv run --proj
 
 ## 3. Repo map
 ```
-apps/web            React + React Three Fiber OV-1 app (scene/, panels/, bridge/, theme/)
+apps/web            React + React Three Fiber OV-1 app (scene/, anim/, panels/, bridge/, theme/)
+apps/web/src/anim   animation layer: Timeline format, pure interpreter, playback clock, timelines/ (docs/animation/)
 packages/core       seeded PRNG, units, shared helpers. No DOM.
 packages/catalog    THE CONTRACT: zod schema + JSON data for nodes, links, threats, controls, scenarios
 packages/sim        deterministic fixed-timestep simulation + event log. No DOM, no three.js.
 packages/risk       FAIR Monte Carlo engine. No DOM.
 analysis/           Python (uv): independent cross-checks, golden vectors, report figures
 fixtures/           generated golden vectors. Don't hand-edit.
-docs/               ADRs, threat model, FAIR parameter sources, design refs, report
+docs/               ADRs, animation guide, threat model, FAIR parameter sources, design refs, report
 tasks/backlog.yaml  seed for GitHub Issues (one-time; Issues are the live task list)
 ```
 
@@ -53,6 +54,7 @@ tasks/backlog.yaml  seed for GitHub Issues (one-time; Issues are the live task l
 8. **Don't edit** `SPEC.md`, `AGENTS.md`, `.github/**`, `scripts/guard-*.mjs`, `biome.json`, or `tsconfig.base.json` unless that is the task.
 9. **Never weaken a test or guard to make CI pass.** Fix the code, or stop and explain on the issue.
 10. **Secrets and data:** never commit `.env`, tokens, or keys. Use **open-source information only**: no CUI, no ITAR/EAR technical data, no employer data. Every FAIR estimate needs a source in `docs/fair/`.
+11. **Animation goes through `anim/`** (SPEC §3.6). See §6.1.
 
 ## 5. Code style
 - TypeScript **strict**, no `any`, no non-null `!` without a comment saying why. Prefer pure functions and plain data.
@@ -66,6 +68,16 @@ tasks/backlog.yaml  seed for GitHub Issues (one-time; Issues are the live task l
 - All colors and fonts come from `apps/web/src/theme/tokens.css`. No inline hex values.
 - Fonts: Arimo for UI. JetBrains Mono only for numeric telemetry and the event log.
 - 3D assets: CC0/CC-BY or procedural only, credited in `apps/web/public/models/CREDITS.md`.
+
+### 6.1 Animation (SPEC §3.6, ADR-0006)
+Anything that moves or changes over time in the scene goes through `apps/web/src/anim/`. **Read `docs/animation/README.md` before animating anything.**
+- **Adding a scenario animation** = one file in `apps/web/src/anim/timelines/` plus one line in `timelines/registry.ts`. Follow `docs/animation/authoring.md` (template, primitive reference, checklist). Don't touch the engine, the scene, or the panels for this.
+- **Timelines are plain data.** No functions, no `Math.random`, no wall-clock reads. Use diorama units, not meters.
+- **No hardcoded IDs in timelines.** Use `nodeIdOfKind`, `scenarioTargets`, and `linkIdsTouching` from `anim/roles.ts`, or catalog relationships. The registry key is the only scenario-ID literal.
+- **Who decides behavior:** what the UAV does under attack comes from the sim via `timelineFromSim()` once `sim-runner` exists. Until then, hand-written scenario timelines are labeled `(storyboard)` in their `label`. Never tune a script to look like a result the sim hasn't produced.
+- **Scene components never animate themselves.** Read `playback.frame` (or `livePosition` / `linkStateOf`) inside `useFrame` and write to refs. Use `useActorTransform(nodeId)` for nodes. Use `usePlayback(selector)` only for discrete UI state, and selectors must return primitives or objects already on the snapshot. **No per-frame React state.**
+- **New channels or primitives** (ghost track, camera cues, …) follow `docs/animation/extending.md`. Keep the format backward compatible and update the docs in the same PR.
+- **Never loosen `anim/validate.ts`** to get a timeline through. `timelines/registry.test.ts` validates every registered timeline in CI. Fix the timeline.
 
 ## 7. Branches, commits, PRs
 - Branch: `agent/<issue#>-short-slug` (agent-written) or `<name>/<issue#>-short-slug` (human-written).
