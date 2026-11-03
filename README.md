@@ -70,7 +70,7 @@ Or open the repo in a **devcontainer** (VS Code / Codespaces), which installs ev
 The to-do list is **GitHub Issues**, organized on a **GitHub Project board**. Issues are the one task
 system that every person *and* every coding agent can read, claim, and close through a PR.
 
-- **`tasks/backlog.yaml`** is the seed: 42 tasks across milestones M0–M3. Each task has an owner type
+- **`tasks/backlog.yaml`** is the seed: 45 tasks across milestones M0–M3. Each task has an owner type
   (`agent-ok` / `human-only`), area, goal, **files in scope**, acceptance criteria, and dependencies.
 - **`pnpm tasks:seed`** turns it into labels, dated milestones, and issues. It's idempotent, so re-running
   only adds what's new. After seeding, **Issues are the live list.** Don't track progress in the YAML.
@@ -163,7 +163,7 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 | `scripts/guard-dist.mjs` | Fails if the `apps/web/dist` build contains any `.map` file, or is missing `_headers` / `robots.txt`. |
 | `scripts/cloud-setup.sh` | Installs pnpm + uv deps at the start of every Claude Code cloud session (via the SessionStart hook). No-op elsewhere. |
 | `scripts/seed-tasks.mjs` | Creates labels, milestones, and issues from the backlog (`--dry-run` to preview). |
-| `tasks/backlog.yaml` | The shared to-do list seed: 42 scoped tasks across M0–M3. |
+| `tasks/backlog.yaml` | The shared to-do list seed: 45 scoped tasks across M0–M3. |
 
 ### Code
 | Path | Purpose |
@@ -172,14 +172,15 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 | `packages/catalog/` | **The contract.** `src/schema.ts` (**frozen** zod schemas with referential-integrity checks) + `data/*.json` (10 nodes, 6 links, 6 threats, 10 controls, 3 adversaries, S1–S6). `stix/` holds the STIX 2.1 bundle. |
 | `packages/sim/` | `events.ts`: **frozen** event-log contract. `log.ts`: append-only, immutable log. Link, nav, kinematics, and lost-link models arrive via M1 tasks. |
 | `packages/risk/` | Beta-PERT / Gamma / Beta / lognormal samplers, summaries, loss exceedance, ROSI. FAIR pipeline arrives via M2 tasks. |
-| `apps/web/` | Vite + React Three Fiber OV-1. `theme/tokens.css` is the only place colors and fonts live. `scene/` has the diorama layout, lightning-bolt links, platform icons, and callouts. `components/` has the banner, title block, legend, and panels. `e2e/` has the Playwright smoke test. `public/_headers` sets the CSP and security headers on Cloudflare Pages (and on `vite preview`, so e2e runs under the same CSP); `public/robots.txt` blocks crawlers until the class reveal. |
+| `apps/web/` | Vite + React Three Fiber OV-1. `theme/tokens.css` is the only place colors and fonts live. `scene/` has the diorama layout, lightning-bolt links, platform icons, and callouts. `components/` has the banner, title block, legend, caption overlay, and panels. `anim/` is the animation layer: Timeline format, pure interpreter, playback clock, R3F bindings, sim → timeline adapter, and the registered timelines (idle holding orbit by default). `panels/` has the scenario picker, playback controls, and live link table. `e2e/` has the Playwright smoke test. `public/_headers` sets the CSP and security headers on Cloudflare Pages (and on `vite preview`, so e2e runs under the same CSP); `public/robots.txt` blocks crawlers until the class reveal. |
 | `analysis/` | Python (uv): `golden.py` generates reference vectors from scipy; pytest proves the committed fixture isn't stale. |
 | `fixtures/risk/pert_golden.json` | Generated golden vectors; the TS PERT tests must match them. |
 
 ### Docs
 | Path | Purpose |
 |---|---|
-| `docs/adr/` | Architecture Decision Records. `0000-template.md`, plus `0001` (R3F over Cesium, accepted). 0002–0005 are backlog tasks. |
+| `docs/adr/` | Architecture Decision Records. `0000-template.md`, plus `0001` (R3F over Cesium, accepted). 0002–0005 are backlog tasks. `0006` (animation timelines, proposed). |
+| `docs/animation/` | How the OV-1 animates: architecture (`README.md`), adding a scenario animation (`authoring.md`), and wiring new scene elements or the sim into playback (`extending.md`). |
 | `docs/fair/` | Where every FAIR estimate's source lives (`_template.md` per scenario). No unsourced numbers. |
 | `docs/design/ov1-refs/` | The OV-1 visual reference set agents build against. |
 | `docs/threat-model/` | STRIDE tables and attack trees, generated from the catalog (backlog task). |

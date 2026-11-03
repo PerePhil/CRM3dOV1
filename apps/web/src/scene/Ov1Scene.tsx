@@ -1,6 +1,7 @@
 import { catalog } from "@ov1/catalog";
 import { Edges, OrbitControls } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
+import { AnimationDriver } from "../anim";
 import { color } from "../theme/tokens";
 import { LinkLine } from "./LinkLine";
 import { NODE_LAYOUT, SCENERY, SLIDE_CAMERA, type Vec3 } from "./layout";
@@ -29,7 +30,7 @@ function Scenery() {
   );
 }
 
-/** The OV-1 diorama (SPEC §7, §8). v0: static default-state scene from the catalog. */
+/** The OV-1 diorama (SPEC §7, §8). Motion comes from the playing timeline (anim/). */
 export function Ov1Scene() {
   return (
     <Canvas
@@ -38,6 +39,7 @@ export function Ov1Scene() {
       gl={{ alpha: true, antialias: true, preserveDrawingBuffer: true }}
       dpr={[1, 2]}
     >
+      <AnimationDriver />
       <hemisphereLight args={[color("sky-top"), color("land"), 1.1]} />
       <directionalLight position={[10, 20, 12]} intensity={1.4} />
       <Scenery />
