@@ -254,7 +254,7 @@ tasks:
     milestone: M1
     area: scene
     who: agent-ok
-    goal: SPEC §8.2 line-pattern encoding driven by store/sim state.
+    goal: SPEC §8.2 line-pattern encoding driven by store/sim state. Read link state from the animation playback (docs/animation/extending.md).
     in_scope: [apps/web/src/scene/LinkLine.tsx, apps/web/src/scene/glyphs.tsx]
     acceptance: ["Animated flow dashes on nominal", "Red only for adversary-controlled states", "Screenshot per state in PR"]
     depends: [app-store]
@@ -264,7 +264,7 @@ tasks:
     milestone: M1
     area: scene
     who: agent-ok
-    goal: Translucent hostile-red volumes with labeled edges (SPEC §8.3).
+    goal: Translucent hostile-red volumes with labeled edges (SPEC §8.3). Visibility from playback activeThreats (docs/animation/extending.md).
     in_scope: [apps/web/src/scene/ThreatVolumes.tsx, apps/web/src/scene/Ov1Scene.tsx]
     acceptance: ["Radius tied to jammer power slider", "Hidden when threat off"]
     depends: [app-store]
@@ -274,7 +274,7 @@ tasks:
     milestone: M1
     area: scene
     who: agent-ok
-    goal: Render the nav-model divergence as a red dashed ghost UAV and trail (SPEC §6.2, §8.2).
+    goal: Render the nav-model divergence as a red dashed ghost UAV and trail (SPEC §6.2, §8.2). Add a perceived-pose channel to the timeline (docs/animation/extending.md#add-a-channel).
     in_scope: [apps/web/src/scene/GhostTrack.tsx, apps/web/src/scene/Ov1Scene.tsx]
     depends: [worker-bridge, nav-model]
 
@@ -314,6 +314,32 @@ tasks:
     goal: Overview, UAV chase, GCS view, and one-click return to the OV-1 slide view (SPEC §7).
     in_scope: [apps/web/src/scene/CameraRig.tsx, apps/web/src/scene/Ov1Scene.tsx, apps/web/src/scene/layout.ts]
 
+  - key: anim-storyboards-s1-s3
+    title: "[scene] Storyboard animation timelines for S1–S3"
+    milestone: M1
+    area: scene
+    who: agent-ok
+    goal: Clickable scenario animations for S1 (jamming), S2 (GNSS spoofing), S3 (telemetry injection), built on the animation layer. Follow docs/animation/authoring.md.
+    in_scope: [apps/web/src/anim/timelines/, apps/web/e2e/]
+    off_limits: "No engine changes (anim/*.ts outside timelines/); no scene components; no hardcoded IDs. Labels must say (storyboard) until the sim drives them."
+    acceptance:
+      - "One timeline file per scenario, registered in SCENARIO_TIMELINES; registry.test.ts green"
+      - "Each uses link keys, threat keys, status + caption cues from the scenario's catalog targets"
+      - "Screenshots of the key beats per scenario in the PR"
+
+  - key: anim-sim-adapter
+    title: "[scene] Play sim runs through the animation timeline"
+    milestone: M1
+    area: scene
+    who: agent-ok
+    goal: "Turn a worker sim run into a Timeline via timelineFromSim() and play it, so scenario motion comes from the sim (SPEC §1). See docs/animation/extending.md#sim-adapter."
+    in_scope: [apps/web/src/scene/simSpace.ts, apps/web/src/scene/simSpace.test.ts, apps/web/src/anim/fromSim.ts, apps/web/src/anim/fromSim.test.ts, apps/web/src/bridge/]
+    acceptance:
+      - "SI → diorama mapping in scene/simSpace.ts with tests"
+      - "Selecting a scenario runs the sim in the worker and loads the resulting timeline"
+      - "Storyboard timelines kept only as choreography (captions) or removed"
+    depends: [sim-runner, worker-bridge]
+
   # ═══════════════════════════════ M2 — Quantified ═══════════════════════════════
   - key: scenarios-s4-s6
     title: "[sim] Scenario behaviors S4 (FW malware), S5 (stolen cred), S6 (ransomware)"
@@ -323,6 +349,19 @@ tasks:
     goal: Cyber-side scenarios with loss-event detection (SPEC §5.3).
     in_scope: [packages/sim/src/scenarios/]
     depends: [scenarios-s1-s3]
+
+  - key: anim-storyboards-s4-s6
+    title: "[scene] Storyboard animation timelines for S4–S6"
+    milestone: M2
+    area: scene
+    who: agent-ok
+    goal: Clickable scenario animations for S4 (firmware malware), S5 (stolen credential), S6 (ransomware). Follow docs/animation/authoring.md.
+    in_scope: [apps/web/src/anim/timelines/, apps/web/e2e/]
+    off_limits: "Same rules as anim-storyboards-s1-s3."
+    acceptance:
+      - "One timeline file per scenario, registered; registry.test.ts green"
+      - "Cyber scenarios show the path (SUP → MX → UAV, GCS ↔ C2) with link keys, status, and captions"
+    depends: [anim-storyboards-s1-s3]
 
   - key: monte-carlo-vuln
     title: "[sim] Headless Monte Carlo → Vuln estimate with Wilson CI"

@@ -6,6 +6,7 @@
 > **Final deliverable due:** 24 Nov 2026. Presentations in the last three class sessions.
 > **Status:** v0.3, initial commit scaffolded. This file is canonical. If code, issues, or agent output disagree with it, this file wins until someone changes it by PR.
 > **v0.3.1:** `packages/catalog/src/schema.ts` and `packages/sim/src/events.ts` were reformatted by Biome 2.6 (whitespace and key quoting only); no contract shape changes.
+> **v0.4:** Added the animation layer (§3.6, ADR-0006): every time-varying thing in the scene is a declarative Timeline played by one clock. No contract changes.
 
 ---
 
@@ -74,7 +75,7 @@ Pin exact versions at scaffold time (latest stable) and record them in `package.
 
 ### 3.2 Simulation engine (`packages/sim`)
 - Pure TypeScript, **zero DOM/three.js imports**. Runs identically in a browser worker and in Node (Vitest + CLI).
-- **Fixed timestep** (default 20 Hz). The renderer interpolates between ticks.
+- **Fixed timestep** (default 20 Hz). The renderer interpolates between ticks (via the animation layer, §3.6).
 - **Seeded PRNG**: xoshiro128\*\* seeded via splitmix32, in `packages/core/src/rng.ts` (frozen), with order-independent `fork(label)` so Monte Carlo trials can run in parallel workers. The same `(config, seed)` always gives the same timeline.
 - **Append-only event log** (`{t, type, source, payload}`). Drives the UI timeline, replay, and repudiation discussion, and is the sim's only output contract.
 - SI units internally. The render layer applies a visual scale transform, because the diorama compresses distances.
@@ -101,6 +102,17 @@ Pin exact versions at scaffold time (latest stable) and record them in `package.
 | Hosting | **Cloudflare Pages**: static SPA, preview deploy per PR (link goes in the PR for reviewers) |
 | Docs | Markdown in `docs/`; Mermaid for attack trees and data-flow diagrams (renders natively on GitHub) |
 
+### 3.6 Animation layer (`apps/web/src/anim`)
+Decision record: ADR-0006. Agent guide: `docs/animation/` (README → authoring → extending).
+
+- **One format.** Everything that changes over time in the scene is a **Timeline**: plain data with actor motion segments (`hold`, `flyTo`, `orbit`, `path`, `samples`), link-state keys, threat keys, and text cues (captions, node status lines), in diorama units and seconds.
+- **One interpreter.** `evaluate(timeline, t) → Frame` is a pure function, so play, pause, scrub, speed, loop, and replay are exact. Heading, bank, and pitch are derived from motion, never authored.
+- **One clock.** A single framework-free playback controller (`playback`) owns time. Scene components read the current frame inside `useFrame` and write to refs. DOM panels read a throttled snapshot (`usePlayback`).
+- **Two producers, one renderer.** Hand-authored timelines (`anim/timelines/`) cover idle/ambient motion, presentation choreography, and labeled **storyboards** until the sim exists. Sim runs are converted with `timelineFromSim()` (event log + snapshots, mapped SI → diorama in `apps/web`). Per §1, *behavior under attack* comes from the sim once `sim-runner` lands. Storyboards must be labeled `(storyboard)` until then.
+- **One wiring point.** Timelines are registered in `anim/timelines/registry.ts` (idle, per-scenario keyed by catalog scenario ID, dev-only references). CI validates every registered timeline against the catalog.
+- **Default view:** the idle timeline, with the UAV in a holding orbit, "LOITER · AWAITING TASKING". Playback starts paused under `prefers-reduced-motion`.
+- The Timeline format is local to `apps/web`, **not** a frozen contract. Changes stay backward compatible (new fields optional) and update `docs/animation/`.
+
 ---
 
 ## 4. Repo layout
@@ -116,6 +128,7 @@ contested-ov1/
 │   └── web/                   ← Vite + R3F app
 │       ├── e2e/               ← Playwright smoke tests
 │       └── src/
+│           ├── anim/          ← animation layer (§3.6): Timeline format, interpreter, playback clock, timelines/
 │           ├── scene/         ← OV-1 layout, platforms, links, threat volumes, camera rigs
 │           ├── panels/        ← scenario, controls, telemetry, event log, risk drawer
 │           ├── components/    ← banner, title block, legend, panel chrome
@@ -135,6 +148,7 @@ contested-ov1/
 ├── tasks/backlog.yaml         ← seed for GitHub Issues (Issues are the live to-do list)
 ├── docs/
 │   ├── adr/                   ← architecture decision records
+│   ├── animation/             ← how to animate the OV-1 (§3.6): architecture, authoring, extending
 │   ├── threat-model/          ← STRIDE tables, attack trees, DFDs (generated from catalog)
 │   ├── fair/                  ← source + rationale for every estimate
 │   ├── design/ov1-refs/       ← public OV-1 visual reference set
@@ -275,7 +289,7 @@ The headline chart overlays the loss exceedance curves with and without the prop
 ## 7. App UX (v1)
 
 - **Viewport:** OV-1 diorama in briefing-graphic style (§8). The default camera is the classic **OV-1 three-quarter "slide" view**. Orbit is allowed, plus presets (overview, UAV chase, GCS view) and a one-click "reset to slide" for the presentation. Links are lightning-bolt lines encoded by type and state; threats are red translucent volumes. Click a node to open its callout.
-- **Left panel, Scenario:** preset picker, adversary profile, seed, play / pause / scrub, sim speed.
+- **Left panel, Scenario:** preset picker (clicking a scenario plays its timeline; clicking again returns to idle), adversary profile, seed, and playback: timeline picker, play / pause / restart, scrub, speed, `T+mm:ss.s` clock (§3.6).
 - **Right panel, Controls:** link matrix (force any link state), threat toggles with intensity sliders, control toggles with cost, lost-link procedure.
 - **Bottom, Telemetry + Event log:** truth vs. perceived readouts side by side (position error, link margin, mode), plus a timestamped event stream. Clicking an event seeks to it.
 - **Risk drawer:** run Monte Carlo for the current config, then show Vuln with CI, ALE percentiles, the loss exceedance curve, and a before/after comparison.
@@ -338,7 +352,8 @@ The group plus coding agents share one repo, so rules matter more than usual.
 4. **Sim and risk code must ship with tests.** Visual and scene code can be vibecoded, but it never touches sim or risk logic.
 5. **No new dependencies** without a line in the PR explaining why.
 6. **Determinism is non-negotiable.** No `Math.random()` or `Date.now()` inside `packages/sim` or `packages/risk`. Enforce with a lint rule.
-7. `AGENTS.md` mirrors these rules in a form agents load automatically. Keep it in sync with this section.
+7. **Animation goes through the animation layer (§3.6).** Nothing in the scene animates itself with its own timer. A scenario animation is one timeline file plus one registry line, following `docs/animation/authoring.md`. Hand-written behavior under attack is labeled `(storyboard)` until the sim drives it.
+8. `AGENTS.md` mirrors these rules in a form agents load automatically. Keep it in sync with this section.
 
 ---
 

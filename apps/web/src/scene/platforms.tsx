@@ -2,6 +2,7 @@ import type { Node } from "@ov1/catalog";
 import { Edges, Html } from "@react-three/drei";
 import { useThree } from "@react-three/fiber";
 import { type RefObject, useMemo } from "react";
+import { useActorTransform, usePlayback } from "../anim";
 import { color } from "../theme/tokens";
 import type { Vec3 } from "./layout";
 
@@ -63,17 +64,25 @@ function Shape({ node, fill }: { node: Node; fill: string }) {
   }
 }
 
-/** One OV-1 node: platform icon + callout box (SPEC §8.4). */
+/**
+ * One OV-1 node: platform icon + callout box (SPEC §8.4). Position and attitude come from the
+ * animation layer (anim/), so any node with a track in the playing timeline moves; the rest sit
+ * at their home position. The callout lives on the position-only group so it never rolls.
+ */
 export function Platform({ node, position }: { node: Node; position: Vec3 }) {
   const fill = color(node.affiliation);
+  const { root, attitude } = useActorTransform(node.id);
+  const status = usePlayback((s) => s.discrete.status.get(node.id));
   // Pin the callout's DOM target. Without it, drei <Html> mounts into the canvas parent, then
   // re-mounts once R3F connects events, and the first callout comes back empty (drei 10.7).
   const gl = useThree((s) => s.gl);
   // The canvas is always mounted inside a wrapper div here, so parentElement is non-null.
   const portal = useMemo(() => ({ current: gl.domElement.parentElement }), [gl]);
   return (
-    <group position={position}>
-      <Shape node={node} fill={fill} />
+    <group ref={root} position={position}>
+      <group ref={attitude}>
+        <Shape node={node} fill={fill} />
+      </group>
       <Html
         portal={portal as RefObject<HTMLElement>}
         position={[0, 1.6, 0]}
@@ -87,6 +96,14 @@ export function Platform({ node, position }: { node: Node; position: Vec3 }) {
           style={{ borderLeft: `4px solid var(--color-${node.affiliation}-strong)` }}
         >
           {node.label}
+          {status ? (
+            <div
+              data-testid={`callout-status-${node.id}`}
+              className="text-[8px] font-normal uppercase tracking-wide text-ink-muted"
+            >
+              {status}
+            </div>
+          ) : null}
         </div>
       </Html>
     </group>

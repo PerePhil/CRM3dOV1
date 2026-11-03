@@ -37,3 +37,26 @@ test("app boots into the OV-1 shell with no console errors", async ({ page }) =>
   await page.screenshot({ path: "test-results/ov1-slide-view.png" });
   expect(errors).toEqual([]);
 });
+
+test("idle timeline flies the UAV; pause freezes it; scrub seeks", async ({ page }) => {
+  await page.goto("/");
+  const uav = page.getByTestId("callout-N-UAV");
+  await expect(uav).toBeVisible();
+  await expect(page.getByTestId("callout-status-N-UAV")).toHaveText(/AWAITING TASKING/);
+
+  const a = await uav.boundingBox();
+  await page.waitForTimeout(1500);
+  const b = await uav.boundingBox();
+  expect(b).not.toEqual(a);
+
+  const toggle = page.getByTestId("playback-toggle");
+  await toggle.click();
+  await expect(toggle).toHaveText("Play");
+  const c = await uav.boundingBox();
+  await page.waitForTimeout(800);
+  expect(await uav.boundingBox()).toEqual(c);
+
+  await page.getByTestId("playback-scrub").fill("14");
+  await expect(page.getByTestId("playback-clock")).toContainText("T+00:14.0");
+  await expect.poll(async () => uav.boundingBox()).not.toEqual(c);
+});
