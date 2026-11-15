@@ -46,12 +46,14 @@ flowchart LR
 | `anim/space.ts` | `homePosition`, `resolvePlace`, `livePosition(frame, id)`, `linkStateOf(frame, link)`. |
 | `anim/roles.ts` | Catalog lookups so scripts never hardcode IDs: `nodeIdOfKind`, `linkIdsTouching`, `scenarioTargets`. |
 | `anim/fromSim.ts` | `timelineFromSim()`: sim event log + position samples → Timeline. |
-| `anim/timelines/registry.ts` | **The one wiring point.** `IDLE_TIMELINE`, `SCENARIO_TIMELINES`, `DEV_TIMELINES`. |
+| `anim/timelines/registry.ts` | **The one wiring point.** `IDLE_TIMELINE`, `MISSION_TIMELINES`, `SCENARIO_TIMELINES`, `DEV_TIMELINES`. |
+| `anim/timelines/refuel-op.ts` | Baseline mission: the 18-step refuel op (tanker + receiver formation), with `steps`. |
 | `anim/timelines/idle.ts` | The default timeline: the UAV flies a holding orbit, "LOITER · AWAITING TASKING". |
 | `anim/timelines/reference.ts` | Dev-only demo that exercises every primitive and channel. Copy its patterns. |
 | `panels/PlaybackControls.tsx` | Timeline picker, play/pause, restart, speed, scrubber, `T+mm:ss.s` clock. |
 | `panels/ScenarioList.tsx` | Clicking a scenario plays its registered timeline. Clicking it again returns to idle. |
 | `components/CaptionOverlay.tsx` | Caption cues, top of the viewport. |
+| `panels/MissionSteps.tsx` | The playing timeline's written procedure. Active step highlighted; click / Prev / Next seek. |
 
 ## Channels a Timeline can drive
 
@@ -62,6 +64,7 @@ flowchart LR
 | Threat active | `threats[threatId]: ThreatKey[]` | `frame.activeThreats` / `snapshot.discrete.activeThreats` | Nothing yet. **Volumes:** `threat-volumes` task |
 | Caption | `cues: {kind:"caption"}` | `snapshot.discrete.captions` | `CaptionOverlay` |
 | Node status | `cues: {kind:"status"}` | `snapshot.discrete.status` | Second line of the node's callout |
+| Mission step | `steps: MissionStep[]` | `frame.stepIndex` / `snapshot.discrete.stepIndex` | `panels/MissionSteps.tsx` (right panel) |
 
 ## Rules (in addition to AGENTS.md)
 

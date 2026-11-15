@@ -67,6 +67,15 @@
     "description": "Credentialed maintenance access to the aircraft and GCS; loads software updates."
   },
   {
+    "id": "N-RCV",
+    "name": "Receiver aircraft (notional combat UAV)",
+    "label": "RECEIVER",
+    "kind": "receiver",
+    "affiliation": "friendly",
+    "description": "Notional friendly combat aircraft that rendezvouses with the tanker UAV for aerial refueling in contested airspace.",
+    "subsystems": ["refueling probe", "IFF transponder", "air-to-air datalink"]
+  },
+  {
     "id": "N-ADV-JAM",
     "name": "Adversary EW jammer",
     "label": "JAMMER",

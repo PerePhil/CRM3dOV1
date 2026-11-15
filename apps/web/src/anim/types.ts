@@ -93,6 +93,23 @@ export type Cue =
   | { kind: "caption"; tS: number; durationS?: number; text: string }
   | { kind: "status"; tS: number; durationS?: number; node: string; text: string };
 
+/**
+ * One step of a written mission procedure (e.g. the refuel-op step breakdown). A step is active
+ * from its tS until the next step's tS; the last one runs to the end. Shown in the Mission Steps
+ * panel, which can seek to a step. Steps are narration, not behavior: they never move anything.
+ */
+export interface MissionStep {
+  tS: number;
+  /** Step number as written in the source procedure. */
+  n: number;
+  /** Short name, e.g. "Fuel Transfer". */
+  title: string;
+  /** One or two sentences from the procedure. */
+  detail?: string;
+  /** Parameters or systems that matter during this step (rows of the mission risk table). */
+  watch?: readonly string[];
+}
+
 export interface Timeline {
   /** Unique, kebab-case, e.g. "idle" or "s1-jamming". */
   id: string;
@@ -110,6 +127,8 @@ export interface Timeline {
   /** Keyed by catalog threat ID. Keys sorted by tS. */
   threats?: Readonly<Record<string, readonly ThreatKey[]>>;
   cues?: readonly Cue[];
+  /** Mission procedure steps, sorted by tS with strictly increasing times. */
+  steps?: readonly MissionStep[];
 }
 
 /** Where an actor is and which way it points. Angles follow the scene convention (README). */
@@ -136,4 +155,6 @@ export interface Frame {
   captions: readonly string[];
   /** Active status line per node (latest cue wins). */
   status: ReadonlyMap<string, string>;
+  /** Index into the timeline's `steps` of the active step, or -1 (before the first / none). */
+  stepIndex: number;
 }

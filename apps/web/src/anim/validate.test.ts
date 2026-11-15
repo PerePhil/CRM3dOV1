@@ -12,6 +12,14 @@ if (!firstLink) throw new Error("catalog has no links");
 const errorsFor = (patch: Partial<Timeline>) => validateTimeline({ ...base, ...patch }).join("\n");
 
 describe("validateTimeline", () => {
+  it("checks mission steps: in range, strictly increasing, non-empty", () => {
+    const step = (tS: number, n: number, title = "x") => ({ tS, n, title });
+    expect(validateTimeline({ ...base, steps: [step(0, 1), step(5, 2)] })).toEqual([]);
+    expect(errorsFor({ steps: [step(11, 1)] })).toMatch(/tS outside timeline/);
+    expect(errorsFor({ steps: [step(5, 1), step(5, 2)] })).toMatch(/strictly increasing/);
+    expect(errorsFor({ steps: [step(0, 1, " ")] })).toMatch(/empty title/);
+  });
+
   it("accepts a minimal timeline", () => {
     expect(validateTimeline(base)).toEqual([]);
   });

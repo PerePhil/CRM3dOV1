@@ -122,5 +122,10 @@ export function evaluate(ct: CompiledTimeline, tS: number): Frame {
     else status.set(cue.node, cue.text);
   }
 
-  return { tS: t, actors, links, activeThreats, captions, status };
+  let stepIndex = -1;
+  ct.steps.forEach((s, i) => {
+    if (s.tS <= t) stepIndex = i;
+  });
+
+  return { tS: t, actors, links, activeThreats, captions, status, stepIndex };
 }

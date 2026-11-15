@@ -3,7 +3,16 @@
  * curves so evaluate() is cheap enough to run every frame. Pure and deterministic.
  */
 import { resolvePlace } from "./space";
-import type { ActorTrack, Cue, LinkKey, MotionSegment, ThreatKey, Timeline, Vec3 } from "./types";
+import type {
+  ActorTrack,
+  Cue,
+  LinkKey,
+  MissionStep,
+  MotionSegment,
+  ThreatKey,
+  Timeline,
+  Vec3,
+} from "./types";
 import {
   add,
   arcLengthSampler,
@@ -52,6 +61,8 @@ export interface CompiledTimeline {
   threats: [string, readonly ThreatKey[]][];
   /** Sorted by tS (stable). */
   cues: Cue[];
+  /** As authored (validate.ts checks the order). */
+  steps: readonly MissionStep[];
   /** Continuity problems found while chaining segments (validate.ts reports these). */
   issues: string[];
 }
@@ -254,6 +265,7 @@ export function compileTimeline(tl: Timeline): CompiledTimeline {
     links: Object.entries(tl.links ?? {}),
     threats: Object.entries(tl.threats ?? {}),
     cues,
+    steps: tl.steps ?? [],
     issues,
   };
 }
