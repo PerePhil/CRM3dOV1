@@ -238,6 +238,10 @@ describe("evaluate(): channels", () => {
       { kind: "status", tS: 0, node: UAV, text: "A" },
       { kind: "status", tS: 5, node: UAV, text: "B" },
     ],
+    steps: [
+      { tS: 1, n: 1, title: "one" },
+      { tS: 4, n: 2, title: "two" },
+    ],
   };
   const ct = compileTimeline(tl);
 
@@ -261,6 +265,14 @@ describe("evaluate(): channels", () => {
   it("latest status cue wins", () => {
     expect(evaluate(ct, 4).status.get(UAV)).toBe("A");
     expect(evaluate(ct, 5).status.get(UAV)).toBe("B");
+  });
+
+  it("step index: -1 before the first step, then the latest step started", () => {
+    expect(evaluate(ct, 0.5).stepIndex).toBe(-1);
+    expect(evaluate(ct, 1).stepIndex).toBe(0);
+    expect(evaluate(ct, 3.9).stepIndex).toBe(0);
+    expect(evaluate(ct, 10).stepIndex).toBe(1);
+    expect(evaluate(compileTimeline({ ...tl, steps: undefined }), 5).stepIndex).toBe(-1);
   });
 
   it("untracked nodes are at home", () => {

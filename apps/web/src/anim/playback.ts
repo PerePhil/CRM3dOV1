@@ -30,6 +30,8 @@ export interface DiscreteState {
   activeThreats: ReadonlySet<string>;
   captions: readonly string[];
   status: ReadonlyMap<string, string>;
+  /** Active mission step index (Frame.stepIndex). */
+  stepIndex: number;
 }
 
 export interface PlaybackSnapshot {
@@ -70,7 +72,7 @@ function discreteKey(f: Frame): string {
   const links = [...f.links].map(([k, v]) => `${k}=${v}`).join(",");
   const threats = [...f.activeThreats].join(",");
   const status = [...f.status].map(([k, v]) => `${k}=${v}`).join("\u0001");
-  return `${links}|${threats}|${f.captions.join("\u0001")}|${status}`;
+  return `${links}|${threats}|${f.captions.join("\u0001")}|${status}|${f.stepIndex}`;
 }
 
 export function createPlayback(initial: Timeline, opts: { autoplay?: boolean } = {}): Playback {
@@ -116,6 +118,7 @@ export function createPlayback(initial: Timeline, opts: { autoplay?: boolean } =
         activeThreats: frame.activeThreats,
         captions: frame.captions,
         status: frame.status,
+        stepIndex: frame.stepIndex,
       };
     }
     const next = build();

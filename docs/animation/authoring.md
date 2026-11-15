@@ -150,6 +150,28 @@ You never author angles except optional `arriveHeadingRad` / `headingRad`.
 | `caption` | `{ tS, durationS?, text }` | Stacked box at the top of the viewport. Keep it under ~60 chars, OV-1 tone. |
 | `status` | `{ tS, durationS?, node, text }` | Second line on the node's callout. The latest active cue wins. |
 
+### Mission steps
+
+A timeline that follows a written procedure lists it in `steps`. The Mission Steps panel shows the
+list, highlights the active step, and seeks to a step when clicked.
+
+| Field | Notes |
+|---|---|
+| `tS` | Step starts here and runs until the next step. Strictly increasing, inside the timeline. |
+| `n` | The step number as written in the source procedure. |
+| `title` | Short name, e.g. "Fuel Transfer". |
+| `detail?` | One or two sentences from the procedure. |
+| `watch?` | Parameters or systems that matter during the step (risk-table rows). |
+
+Steps narrate; they never move anything. Put the motion in `actors` and let the step boundaries
+match the segment boundaries (see `refuel-op.ts`, which keys both off one `T` table).
+
+### Baseline missions vs. scenarios
+
+A mission with no threats (e.g. `refuel-op`) has no `scenarioId`. Register it in
+`MISSION_TIMELINES`, not `SCENARIO_TIMELINES`: it appears in the timeline picker and as a load
+button in the Mission Steps panel.
+
 Without `durationS`, a cue lasts to the end of the timeline. Write text in the briefing voice: short and
 factual, uppercase for status (`LOST-LINK · RTB`), sentence case for captions.
 

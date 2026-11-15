@@ -113,6 +113,15 @@ export function validateTimeline(tl: Timeline): string[] {
     if (c.kind === "status" && !nodes.has(c.node)) err(`${where}: unknown node ${c.node}`);
   });
 
+  (tl.steps ?? []).forEach((s, i) => {
+    const where = `steps[${i}] (step ${s.n})`;
+    if (!(s.tS >= 0 && s.tS <= tl.durationS + EPS)) err(`${where}: tS outside timeline`);
+    const prev = tl.steps?.[i - 1];
+    if (prev && !(s.tS > prev.tS)) err(`${where}: steps must have strictly increasing tS`);
+    if (!s.title.trim()) err(`${where}: empty title`);
+    if (s.watch?.some((w) => !w.trim())) err(`${where}: empty watch entry`);
+  });
+
   // Structural checks passed: compile and check continuity.
   if (errors.length > 0) return errors;
   const ct = compileTimeline(tl);

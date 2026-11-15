@@ -102,6 +102,15 @@ describe("playback controller", () => {
     expect(p.getSnapshot().discrete.captions).toEqual(["half"]);
   });
 
+  it("publishes a new discrete state when the active step changes", () => {
+    const p = createPlayback({ ...once, cues: [], steps: [{ tS: 1, n: 1, title: "go" }] });
+    const before = p.getSnapshot().discrete;
+    expect(before.stepIndex).toBe(-1);
+    p.seek(1.5);
+    expect(p.getSnapshot().discrete).not.toBe(before);
+    expect(p.getSnapshot().discrete.stepIndex).toBe(0);
+  });
+
   it("unsubscribe stops notifications", () => {
     const p = createPlayback(once);
     const listener = vi.fn();

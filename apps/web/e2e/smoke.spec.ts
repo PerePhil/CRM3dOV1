@@ -60,3 +60,21 @@ test("idle timeline flies the UAV; pause freezes it; scrub seeks", async ({ page
   await expect(page.getByTestId("playback-clock")).toContainText("T+00:14.0");
   await expect.poll(async () => uav.boundingBox()).not.toEqual(c);
 });
+
+test("refuel op: mission steps panel follows playback and seeks", async ({ page }) => {
+  await page.goto("/");
+  await page.getByTestId("mission-load-refuel-op").click();
+  await expect(page.getByTestId("callout-N-RCV")).toBeVisible();
+  await page.getByTestId("playback-toggle").click();
+  await expect(page.getByTestId("playback-toggle")).toHaveText("Play");
+
+  await page.getByTestId("mission-step-14").getByRole("button").click();
+  await expect(page.getByTestId("mission-step-counter")).toHaveText("STEP 14 / 18");
+  await expect(page.getByTestId("mission-step-14")).toHaveAttribute("aria-current", "step");
+  await expect(page.getByTestId("mission-step-watch")).toContainText("Receiver Communication");
+  await expect(page.getByTestId("callout-status-N-RCV")).toHaveText(/CONTACT/);
+
+  await page.getByTestId("mission-step-next").click();
+  await expect(page.getByTestId("mission-step-counter")).toHaveText("STEP 15 / 18");
+  await page.screenshot({ path: "test-results/ov1-refuel-op.png" });
+});
