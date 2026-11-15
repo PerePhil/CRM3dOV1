@@ -14,6 +14,7 @@ export const NODE_LAYOUT: Readonly<Record<string, Vec3>> = {
   "N-SUP": [-18.5, 0.9, -11],
   "N-SAT": [-3, 13, -11],
   "N-GNSS": [8, 14.5, -13],
+  "N-RCV": [15, 7.5, -5],
   "N-ADV-JAM": [10, 1.0, 6],
   "N-ADV-SPOOF": [14, 1.0, -1],
   "N-ADV-CYBER": [14.5, 1.0, -9],

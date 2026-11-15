@@ -60,5 +60,15 @@
     "medium": "wired",
     "states": ["nominal", "denied"],
     "defaultState": "nominal"
+  },
+  {
+    "id": "L-RCV",
+    "name": "Tanker–receiver coordination datalink",
+    "label": "RCVR COORD",
+    "from": "N-UAV",
+    "to": "N-RCV",
+    "medium": "rf",
+    "states": ["nominal", "degraded", "denied", "spoofed"],
+    "defaultState": "nominal"
   }
 ]

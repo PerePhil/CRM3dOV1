@@ -7,6 +7,7 @@
 > **Status:** v0.3, initial commit scaffolded. This file is canonical. If code, issues, or agent output disagree with it, this file wins until someone changes it by PR.
 > **v0.3.1:** `packages/catalog/src/schema.ts` and `packages/sim/src/events.ts` were reformatted by Biome 2.6 (whitespace and key quoting only); no contract shape changes.
 > **v0.4:** Added the animation layer (§3.6, ADR-0006): every time-varying thing in the scene is a declarative Timeline played by one clock. No contract changes.
+> **v0.5 (contract):** Added node kind `receiver` to `packages/catalog/src/schema.ts`, plus `N-RCV` (receiver aircraft) and `L-RCV` (tanker–receiver coordination datalink) to the catalog, for the baseline refuel mission (§5.6). Added the optional `steps` channel to the Timeline format and the Mission Steps panel (§3.6, §7).
 
 ---
 
@@ -109,7 +110,8 @@ Decision record: ADR-0006. Agent guide: `docs/animation/` (README → authoring 
 - **One interpreter.** `evaluate(timeline, t) → Frame` is a pure function, so play, pause, scrub, speed, loop, and replay are exact. Heading, bank, and pitch are derived from motion, never authored.
 - **One clock.** A single framework-free playback controller (`playback`) owns time. Scene components read the current frame inside `useFrame` and write to refs. DOM panels read a throttled snapshot (`usePlayback`).
 - **Two producers, one renderer.** Hand-authored timelines (`anim/timelines/`) cover idle/ambient motion, presentation choreography, and labeled **storyboards** until the sim exists. Sim runs are converted with `timelineFromSim()` (event log + snapshots, mapped SI → diorama in `apps/web`). Per §1, *behavior under attack* comes from the sim once `sim-runner` lands. Storyboards must be labeled `(storyboard)` until then.
-- **One wiring point.** Timelines are registered in `anim/timelines/registry.ts` (idle, per-scenario keyed by catalog scenario ID, dev-only references). CI validates every registered timeline against the catalog.
+- **Mission steps.** A Timeline may carry `steps`: a written procedure (number, title, description, parameters to watch) keyed to playback time. The Mission Steps panel highlights the active step and seeks the shared clock when a step is clicked. Steps narrate; they never move anything.
+- **One wiring point.** Timelines are registered in `anim/timelines/registry.ts` (idle, baseline missions, per-scenario keyed by catalog scenario ID, dev-only references). CI validates every registered timeline against the catalog.
 - **Default view:** the idle timeline, with the UAV in a holding orbit, "LOITER · AWAITING TASKING". Playback starts paused under `prefers-reduced-motion`.
 - The Timeline format is local to `apps/web`, **not** a frozen contract. Changes stay backward compatible (new fields optional) and update `docs/animation/`.
 
@@ -175,6 +177,7 @@ contested-ov1/
 | `N-GNSS` | GNSS constellation | Positioning source |
 | `N-SUP` | Software / firmware supply chain | Build → sign → deliver → deploy pipeline |
 | `N-MX` | Maintenance terminal | Credentialed access to the aircraft and GCS |
+| `N-RCV` | Receiver aircraft (notional combat UAV), kind `receiver` | Refuels from `N-UAV` in the baseline mission (§5.6) |
 | `N-ADV-*` | Adversary emitters | Jammer (ground/airborne), GNSS spoofer, cyber operator |
 
 **Asset licensing:** use CC0 / CC-BY models or procedural geometry only, and keep attribution in `apps/web/public/models/CREDITS.md`. No ripped or branded Boeing models.
@@ -188,6 +191,7 @@ contested-ov1/
 | `L-TLM` | Telemetry downlink (UAV → GCS/C2) | `nominal · degraded · denied · injected` |
 | `L-UPD` | Firmware/software update path (SUP → MX → UAV) | `trusted · compromised` |
 | `L-GCS-C2` | Terrestrial network (GCS ↔ C2) | `nominal · denied (ransomware)` |
+| `L-RCV` | Tanker–receiver coordination datalink (UAV ↔ RCV) | `nominal · degraded · denied · spoofed` |
 
 ### 5.3 Scenario presets (from Milestone 1 threat table)
 | ID | Scenario | STRIDE | Candidate external mapping *(verify before citing)* |
@@ -213,6 +217,11 @@ Notional actors modeled on public reporting, stored as a STIX 2.1 bundle (`threa
 - `ADV-1` Nation-state EW unit (S1, S2)
 - `ADV-2` Nation-state cyber operator / APT (S3, S4, S5)
 - `ADV-3` Criminal ransomware affiliate (S6; LockBit 2023 incident as the reference case)
+
+---
+
+### 5.6 Baseline mission: refuel op
+The mission the scenarios attack: an MQ-25-class tanker (`N-UAV`) launches from the carrier, transits to a tanker anchor in contested airspace, identifies and joins with a receiver (`N-RCV`), transfers fuel, separates, and recovers to the carrier. The 18-step procedure and the parameter/tolerance table come from the team's mission analysis. It plays as the `refuel-op` timeline (`apps/web/src/anim/timelines/refuel-op.ts`), hand-authored and labeled `(storyboard)` until the sim drives it. Each step's "watch" list is the parameter table's "Effected Activities" column.
 
 ---
 
@@ -290,6 +299,7 @@ The headline chart overlays the loss exceedance curves with and without the prop
 
 - **Viewport:** OV-1 diorama in briefing-graphic style (§8). The default camera is the classic **OV-1 three-quarter "slide" view**. Orbit is allowed, plus presets (overview, UAV chase, GCS view) and a one-click "reset to slide" for the presentation. Links are lightning-bolt lines encoded by type and state; threats are red translucent volumes. Click a node to open its callout.
 - **Left panel, Scenario:** preset picker (clicking a scenario plays its timeline; clicking again returns to idle), adversary profile, seed, and playback: timeline picker, play / pause / restart, scrub, speed, `T+mm:ss.s` clock (§3.6).
+- **Right panel, Mission Steps:** the written procedure for the playing timeline (e.g. the 18-step refuel op). The active step is highlighted with its description and the parameters to watch; Prev / Next and clicking a step seek the playback clock.
 - **Right panel, Controls:** link matrix (force any link state), threat toggles with intensity sliders, control toggles with cost, lost-link procedure.
 - **Bottom, Telemetry + Event log:** truth vs. perceived readouts side by side (position error, link margin, mode), plus a timestamped event stream. Clicking an event seeks to it.
 - **Risk drawer:** run Monte Carlo for the current config, then show Vuln with CI, ALE percentiles, the loss exceedance curve, and a before/after comparison.

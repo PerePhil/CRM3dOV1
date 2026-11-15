@@ -30,6 +30,27 @@ function Shape({ node, fill }: { node: Node; fill: string }) {
           <Solid size={[0.4, 0.5, 0.06]} position={[-1.05, 0.3, 0]} fill={fill} />
         </group>
       );
+    case "receiver":
+      // Distinct from the tanker silhouette: shorter body, wider mid-mounted wing, twin canted
+      // tails, so the two read as different aircraft when they fly in formation.
+      return (
+        <group>
+          <Solid size={[1.9, 0.3, 0.42]} fill={fill} />
+          <Solid size={[0.9, 0.07, 2.8]} position={[-0.15, 0, 0]} fill={fill} />
+          <Solid
+            size={[0.35, 0.45, 0.05]}
+            position={[-0.8, 0.25, 0.22]}
+            rotation={[0.35, 0, 0]}
+            fill={fill}
+          />
+          <Solid
+            size={[0.35, 0.45, 0.05]}
+            position={[-0.8, 0.25, -0.22]}
+            rotation={[-0.35, 0, 0]}
+            fill={fill}
+          />
+        </group>
+      );
     case "satcom":
       return (
         <group>
@@ -65,6 +86,12 @@ function Shape({ node, fill }: { node: Node; fill: string }) {
 }
 
 /**
+ * Callout height above the platform. The receiver flies in formation just below and astern of
+ * the tanker, so its callout goes underneath to keep both legible.
+ */
+const CALLOUT_Y: Partial<Record<Node["kind"], number>> = { receiver: -1.1 };
+
+/**
  * One OV-1 node: platform icon + callout box (SPEC §8.4). Position and attitude come from the
  * animation layer (anim/), so any node with a track in the playing timeline moves; the rest sit
  * at their home position. The callout lives on the position-only group so it never rolls.
@@ -85,7 +112,7 @@ export function Platform({ node, position }: { node: Node; position: Vec3 }) {
       </group>
       <Html
         portal={portal as RefObject<HTMLElement>}
-        position={[0, 1.6, 0]}
+        position={[0, CALLOUT_Y[node.kind] ?? 1.6, 0]}
         center
         zIndexRange={[10, 0]}
         style={{ pointerEvents: "none" }}

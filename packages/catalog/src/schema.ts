@@ -72,6 +72,7 @@ export const Node = z.object({
     "gnss",
     "supply-chain",
     "maintenance",
+    "receiver",
     "adversary-jammer",
     "adversary-spoofer",
     "adversary-cyber",
