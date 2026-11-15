@@ -1,9 +1,8 @@
 import type { Node } from "@ov1/catalog";
 import { Edges, Html } from "@react-three/drei";
-import { useThree } from "@react-three/fiber";
-import { type RefObject, useMemo } from "react";
 import { useActorTransform, usePlayback } from "../anim";
 import { color } from "../theme/tokens";
+import { useHtmlPortal } from "./htmlPortal";
 import type { Vec3 } from "./layout";
 
 /**
@@ -100,18 +99,14 @@ export function Platform({ node, position }: { node: Node; position: Vec3 }) {
   const fill = color(node.affiliation);
   const { root, attitude } = useActorTransform(node.id);
   const status = usePlayback((s) => s.discrete.status.get(node.id));
-  // Pin the callout's DOM target. Without it, drei <Html> mounts into the canvas parent, then
-  // re-mounts once R3F connects events, and the first callout comes back empty (drei 10.7).
-  const gl = useThree((s) => s.gl);
-  // The canvas is always mounted inside a wrapper div here, so parentElement is non-null.
-  const portal = useMemo(() => ({ current: gl.domElement.parentElement }), [gl]);
+  const portal = useHtmlPortal();
   return (
     <group ref={root} position={position}>
       <group ref={attitude}>
         <Shape node={node} fill={fill} />
       </group>
       <Html
-        portal={portal as RefObject<HTMLElement>}
+        portal={portal}
         position={[0, CALLOUT_Y[node.kind] ?? 1.6, 0]}
         center
         zIndexRange={[10, 0]}

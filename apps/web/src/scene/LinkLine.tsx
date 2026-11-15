@@ -5,6 +5,7 @@ import { type ComponentRef, useMemo, useRef } from "react";
 import { type Group, InterleavedBufferAttribute, type Mesh } from "three";
 import { homePosition, livePosition, playback } from "../anim";
 import { color, linkColorToken } from "../theme/tokens";
+import { useHtmlPortal } from "./htmlPortal";
 import type { Vec3 } from "./layout";
 import { linkPoints, writeSegmentDistances, writeSegmentPositions } from "./linkGeometry";
 import { labelFraction } from "./linkLabels";
@@ -42,6 +43,7 @@ export function LinkLine({ link }: { link: Link }) {
   const labelIndex = Math.round(labelFraction(link, catalog.links) * (initial.length - 1));
   const mid = initial[labelIndex] as Vec3;
   const token = linkColorToken(link);
+  const portal = useHtmlPortal();
 
   const line = useRef<ComponentRef<typeof Line>>(null);
   const label = useRef<Group>(null);
@@ -73,7 +75,7 @@ export function LinkLine({ link }: { link: Link }) {
         frustumCulled={false}
       />
       <group ref={label} position={mid}>
-        <Html center zIndexRange={[9, 0]} style={{ pointerEvents: "none" }}>
+        <Html portal={portal} center zIndexRange={[9, 0]} style={{ pointerEvents: "none" }}>
           <div
             className="whitespace-nowrap bg-paper/90 px-1 text-[9px] font-bold"
             style={{ color: `var(--color-${token})`, border: `1px solid var(--color-${token})` }}
