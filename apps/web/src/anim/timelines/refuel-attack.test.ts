@@ -24,7 +24,9 @@ const posIn = (tl: Timeline) => {
   };
 };
 const nominalPos = posIn(refuelOpTimeline);
-const knownParameters = new Set(REFUEL_OP.steps.flatMap((s) => s.watch ?? []));
+/** Parameter-table rows ("Effected Activities") mapped to a procedure step number. */
+const watchedAt = (n: number | undefined) =>
+  new Set(REFUEL_OP.steps.find((s) => s.n === n)?.watch ?? []);
 
 const cases = [
   {
@@ -66,8 +68,14 @@ describe.each(cases)("$tl.id", ({ tl, attackAt, after, next, reveal }) => {
     expect(steps.slice(0, i).map((s) => s.n)).toEqual(
       Array.from({ length: after }, (_, k) => k + 1),
     );
-    for (const w of attacks[0]?.watch ?? []) expect(knownParameters.has(w)).toBe(true);
     expect(tl.label).toMatch(/\(storyboard\)/);
+  });
+
+  it("watches only parameters the mission table maps to the step it interrupts or leads into", () => {
+    const attack = (tl.steps ?? []).find((s) => s.kind === "attack");
+    const mapped = new Set([...watchedAt(after), ...watchedAt(next)]);
+    expect(attack?.watch?.length ?? 0).toBeGreaterThan(0);
+    for (const w of attack?.watch ?? []) expect(mapped.has(w), w).toBe(true);
   });
 
   it("flies the nominal mission until the attack", () => {
