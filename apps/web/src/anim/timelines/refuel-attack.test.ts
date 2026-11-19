@@ -8,9 +8,20 @@ import type { MotionSegment, Timeline, Vec3 } from "../types";
 import { distance } from "../vec";
 import { clipCues, fitSegments } from "./refuel-attack";
 import { REFUEL_OP, refuelOpTimeline } from "./refuel-op";
-import { S1_TIMES, s1GpsSpoofing } from "./s1-gps-spoofing";
-import { S2_FDI_TIMES, s2FalseTelemetry } from "./s2-false-telemetry";
-import { S2_MALWARE_TIMES, s2Malware } from "./s2-malware";
+import { availableTimelines } from "./registry";
+import { S1_TIMES } from "./s1-gps-spoofing";
+import { S2_FDI_TIMES } from "./s2-false-telemetry";
+import { S2_MALWARE_TIMES } from "./s2-malware";
+
+/** Storyboards as the registry builds them (it alone binds scenario IDs). */
+const registered = (id: string): Timeline => {
+  const tl = availableTimelines(false).find((t) => t.id === id);
+  if (!tl) throw new Error(`timeline ${id} is not registered`);
+  return tl;
+};
+const s1GpsSpoofing = registered("s1-gps-spoofing");
+const s2FalseTelemetry = registered("s2-false-telemetry");
+const s2Malware = registered("s2-malware");
 
 const TANKER = nodeIdOfKind("uav");
 const RECEIVER = nodeIdOfKind("receiver");
@@ -113,26 +124,13 @@ describe.each(cases)("$tl.id", ({ tl, attackAt, divergeAt, after, next, reveal }
   });
 });
 
-describe("scenarios follow the mission analysis doc", () => {
-  it("S1 GPS spoofing, S2 supply-chain malware / false data injection, S3 C2 jamming", () => {
-    expect(catalog.scenarios.map((s) => [s.id, s.threats.map((t) => getThreat(t).stride)])).toEqual(
-      [
-        ["S1", [["S", "T"]]],
-        [
-          "S2",
-          [
-            ["T", "E"],
-            ["S", "T"],
-          ],
-        ],
-        ["S3", [["D"]]],
-      ],
-    );
-  });
-
+describe("S2 animations", () => {
   it("S2's two animations cover both of its threats", () => {
     const used = [s2FalseTelemetry, s2Malware].flatMap((tl) => Object.keys(tl.threats ?? {}));
-    expect(new Set(used)).toEqual(new Set(catalog.scenarios.find((s) => s.id === "S2")?.threats));
+    expect(s2Malware.scenarioId).toBe(s2FalseTelemetry.scenarioId);
+    expect(new Set(used)).toEqual(
+      new Set(catalog.scenarios.find((s) => s.id === s2Malware.scenarioId)?.threats),
+    );
   });
 });
 

@@ -46,6 +46,19 @@ describe("timeline registry", () => {
     }
   });
 
+  it("scenario IDs are written out only in the registry (AGENTS.md §6.1)", () => {
+    const sources = import.meta.glob(["./*.ts", "!./registry.ts", "!./*.test.ts"], {
+      query: "?raw",
+      import: "default",
+      eager: true,
+    }) as Record<string, string>;
+    expect(Object.keys(sources).length).toBeGreaterThan(0);
+    const ids = catalog.scenarios.map((s) => s.id);
+    for (const [file, src] of Object.entries(sources)) {
+      for (const id of ids) expect(src.includes(`"${id}"`), `${file} names ${id}`).toBe(false);
+    }
+  });
+
   it("idle loops forever and moves the UAV", () => {
     expect(IDLE_TIMELINE.loop).toBe(true);
     const ct = compileTimeline(IDLE_TIMELINE);

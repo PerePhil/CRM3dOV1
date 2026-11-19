@@ -12,7 +12,7 @@ Read [README.md](README.md) first, especially **Rule 1** (what a hand-authored t
 
 1. **Create the file**, e.g. `apps/web/src/anim/timelines/s3-jamming.ts`. Start from the
    template below or copy `reference.ts`.
-2. **Get every ID from the catalog.** Use `nodeIdOfKind("uav")`, `scenarioTargets(scenario)`,
+2. **Get every ID from the catalog.** Take the scenario ID as the builder's argument. Use `nodeIdOfKind("uav")`, `scenarioTargets(scenario)`,
    `linkIdsTouching(nodeId)`, or `catalog.*.find(…)` on relationships. Never write `"L-LOS"`.
 3. **Describe motion as segments** (reference below). Segments play back to back, and each one starts
    where the previous one ended.
@@ -20,10 +20,12 @@ Read [README.md](README.md) first, especially **Rule 1** (what a hand-authored t
 5. **Register it** in `timelines/registry.ts`:
    ```ts
    export const SCENARIO_TIMELINES: Readonly<Record<string, readonly Timeline[]>> = {
-     S3: [s3Jamming],
+     S3: byScenario("S3", [jammingStoryboard]),
    };
    ```
-   The key must equal every listed timeline's `scenarioId` (the test enforces this). That enables
+   Scenario timelines are **builders** `(scenarioId) => Timeline`: the registry key is the only
+   place a scenario ID is written out, and `registry.test.ts` fails if any other timeline file
+   names one. The key must equal every built timeline's `scenarioId` (also tested). That enables
    the scenario's button in the left panel and adds it to the timeline picker. A scenario with
    several threats can list several timelines; give each a distinct `variant` (e.g. S2's
    "False telemetry" and "Flight-computer malware") and they appear as sub-buttons.
@@ -42,12 +44,14 @@ import { getScenario } from "@ov1/catalog";
 import { nodeIdOfKind, scenarioTargets } from "../roles";
 import type { Timeline } from "../types";
 
-const scenario = getScenario("S3");            // the only literal ID, and the registry key matches it
 const UAV = nodeIdOfKind("uav");
 const GCS = nodeIdOfKind("gcs");
-const { threats, links } = scenarioTargets(scenario);
 
-export const s3Jamming: Timeline = {
+/** The registry passes the scenario ID: no scenario-ID literal in this file (AGENTS.md §6.1). */
+export function jammingStoryboard(scenarioId: string): Timeline {
+  const scenario = getScenario(scenarioId);
+  const { threats, links } = scenarioTargets(scenario);
+  return {
   id: "s3-jamming",
   label: `${scenario.id} · ${scenario.name} (storyboard)`,
   scenarioId: scenario.id,
@@ -71,7 +75,8 @@ export const s3Jamming: Timeline = {
     { kind: "caption", tS: 4, durationS: 6, text: "Jammer radiates on C2 bands" },
     { kind: "status", tS: 9, node: UAV, text: `LOST-LINK · ${scenario.defaultLostLink.toUpperCase()}` },
   ],
-};
+  };
+}
 ```
 
 This is illustrative. A real S3 should take its timing and behavior from the sim once `sim-runner`

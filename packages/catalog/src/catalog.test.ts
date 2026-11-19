@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Catalog, catalog, getLink, getScenario } from "./index";
+import { Catalog, catalog, getLink, getScenario, getThreat } from "./index";
 
 describe("catalog", () => {
   it("parses and passes referential integrity", () => {
@@ -8,6 +8,21 @@ describe("catalog", () => {
 
   it("ships the three SPEC §5.3 scenarios (mission analysis doc)", () => {
     expect(catalog.scenarios.map((s) => s.id)).toEqual(["S1", "S2", "S3"]);
+  });
+
+  it("follows the mission analysis doc: S1 GPS spoofing, S2 malware / FDI, S3 C2 jamming", () => {
+    const shape = catalog.scenarios.map((s) => [s.id, s.threats.map((t) => getThreat(t).stride)]);
+    expect(shape).toEqual([
+      ["S1", [["S", "T"]]],
+      [
+        "S2",
+        [
+          ["T", "E"],
+          ["S", "T"],
+        ],
+      ],
+      ["S3", [["D"]]],
+    ]);
   });
 
   it("every scenario resolves to at least one threat with a STRIDE category", () => {
