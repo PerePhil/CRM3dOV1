@@ -6,7 +6,7 @@
  * Hand-authored behavior under attack: every timeline built here is labeled (storyboard) until
  * the sim produces the run (docs/animation/README.md, Rule 1).
  */
-import { catalog, getScenario, type LinkState } from "@ov1/catalog";
+import { catalog, getLink, getScenario, getThreat, type LinkState } from "@ov1/catalog";
 import { hostileNodeIds, linkIdsTouching } from "../roles";
 import type { Cue, LinkKey, MissionStep, MotionSegment, Timeline, VisibilityKey } from "../types";
 import { REFUEL_OP, statusCues } from "./refuel-op";
@@ -63,21 +63,52 @@ export function linksLostWith(nodeId: string): string[] {
   );
 }
 
+/**
+ * The scenario threat that drives one of its links into `state` (e.g. "injected" for false data,
+ * "compromised" for a poisoned update). Lets a variant pick its threat from catalog
+ * relationships instead of a literal ID. Throws unless exactly one matches.
+ */
+export function scenarioThreatByLinkState(
+  scenarioId: string,
+  state: LinkState,
+): { id: string; links: string[]; nodes: string[] } {
+  const hits = getScenario(scenarioId)
+    .threats.map(getThreat)
+    .filter((t) => t.targets.links.some((l) => getLink(l).states.includes(state)));
+  const t = hits[0];
+  if (hits.length !== 1 || !t) {
+    throw new Error(
+      `${scenarioId}: expected one threat targeting a "${state}" link, found ${hits.length}`,
+    );
+  }
+  return { id: t.id, links: [...t.targets.links], nodes: [...t.targets.nodes] };
+}
+
 export interface RefuelAttackSpec {
   /** Kebab-case timeline id. */
   id: string;
-  /** Catalog scenario this storyboards. Its threats go active at `attackAtS`. */
+  /** Catalog scenario this storyboards. */
   scenarioId: string;
-  /** The nominal mission plays until here; the red attack step starts here. */
+  /** Short name when the scenario has several animations (Timeline.variant). */
+  variant?: string;
+  /** Threats used by this animation (go active at `attackAtS`). Default: all of the scenario's. */
+  threats?: readonly string[];
+  /** The red attack step starts here. Nominal captions and status end here. */
   attackAtS: number;
+  /**
+   * Where the actors' motion leaves the nominal profile, if earlier than `attackAtS` (the attack
+   * shapes motion inside the step it interrupts). Must land inside a hold/orbit or on a segment
+   * boundary. Default: `attackAtS`.
+   */
+  divergeAtS?: number;
   /** The injected step. Its number is the procedure step it follows. */
   attack: { title: string; detail: string; watch: readonly string[] };
   /** Procedure steps (by number) that still happen after the attack, at their new start times. */
   after?: readonly { n: number; tS: number }[];
   durationS: number;
-  /** Tanker motion from `attackAtS` on. */
+  /** Tanker motion from `divergeAtS` on. */
   tanker: MotionSegment[];
-  /** Receiver motion from `attackAtS` on. Omit to keep its nominal track. */
+  /** Receiver motion from `divergeAtS` on. Omit to keep its nominal track. */
   receiver?: MotionSegment[];
   /** Adversary nodes that appear when the attack is used. */
   reveal: readonly string[];
@@ -90,7 +121,15 @@ export interface RefuelAttackSpec {
 export function refuelAttackTimeline(spec: RefuelAttackSpec): Timeline {
   const scenario = getScenario(spec.scenarioId);
   const { attackAtS: cut, durationS } = spec;
+  const diverge = spec.divergeAtS ?? cut;
+  if (diverge > cut) throw new Error(`${spec.id}: divergeAtS must not be after attackAtS`);
+  const threats = spec.threats ?? scenario.threats;
+  for (const id of threats) {
+    if (!scenario.threats.includes(id))
+      throw new Error(`${spec.id}: ${id} is not a threat of ${scenario.id}`);
+  }
   const nominal = REFUEL_OP;
+  const title = spec.variant ? `${scenario.name} · ${spec.variant}` : scenario.name;
 
   const before = nominal.steps.filter((s) => s.tS < cut - EPS);
   const last = before[before.length - 1];
@@ -102,7 +141,7 @@ export function refuelAttackTimeline(spec: RefuelAttackSpec): Timeline {
     return { ...s, tS };
   });
 
-  const receiverEnd = spec.receiver ? cut : durationS;
+  const receiverEnd = spec.receiver ? diverge : durationS;
   const links: Record<string, LinkKey[]> = {};
   for (const { link, tS, state } of spec.links ?? []) {
     const keys = links[link] ?? [];
@@ -130,15 +169,16 @@ export function refuelAttackTimeline(spec: RefuelAttackSpec): Timeline {
 
   return {
     id: spec.id,
-    label: `${scenario.id} · ${scenario.name} · refuel op (storyboard)`,
+    label: `${scenario.id} · ${title} · refuel op (storyboard)`,
     scenarioId: scenario.id,
+    ...(spec.variant ? { variant: spec.variant } : {}),
     durationS,
     loop: false,
     actors: {
       [nominal.tanker.id]: {
         start: nominal.tanker.start,
         startHeadingRad: 0,
-        segments: [...fitSegments(nominal.tanker.segments, cut), ...spec.tanker],
+        segments: [...fitSegments(nominal.tanker.segments, diverge), ...spec.tanker],
       },
       [nominal.receiver.id]: {
         start: nominal.receiver.start,
@@ -148,11 +188,16 @@ export function refuelAttackTimeline(spec: RefuelAttackSpec): Timeline {
         ],
       },
     },
-    threats: Object.fromEntries(scenario.threats.map((id) => [id, [{ tS: cut, active: true }]])),
+    threats: Object.fromEntries(threats.map((id) => [id, [{ tS: cut, active: true }]])),
     links,
     visibility,
     cues: [
-      { kind: "caption", tS: 0, durationS: 6, text: `Refuel op · ${scenario.id} ${scenario.name}` },
+      {
+        kind: "caption",
+        tS: 0,
+        durationS: 6,
+        text: `Refuel op · ${scenario.id} ${spec.variant ?? scenario.name}`,
+      },
       ...clipCues(nominal.captions, cut),
       ...clipCues(statusCues(nominal.tanker.id, entries(nominal.tankerStatus)), cut),
       ...(spec.receiver

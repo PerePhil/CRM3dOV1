@@ -1,6 +1,6 @@
 # Authoring a timeline
 
-This guide is for an agent or person adding a scenario animation (S1–S6) or any other timeline.
+This guide is for an agent or person adding a scenario animation (S1–S3) or any other timeline.
 You'll touch two files: a new `apps/web/src/anim/timelines/<name>.ts` and one line in
 `timelines/registry.ts`. You don't touch the engine, the scene, or the panels.
 
@@ -10,7 +10,7 @@ Read [README.md](README.md) first, especially **Rule 1** (what a hand-authored t
 
 ## Recipe: add a scenario animation
 
-1. **Create the file**, e.g. `apps/web/src/anim/timelines/s1-jamming.ts`. Start from the
+1. **Create the file**, e.g. `apps/web/src/anim/timelines/s3-jamming.ts`. Start from the
    template below or copy `reference.ts`.
 2. **Get every ID from the catalog.** Use `nodeIdOfKind("uav")`, `scenarioTargets(scenario)`,
    `linkIdsTouching(nodeId)`, or `catalog.*.find(…)` on relationships. Never write `"L-LOS"`.
@@ -19,12 +19,14 @@ Read [README.md](README.md) first, especially **Rule 1** (what a hand-authored t
 4. **Add link, threat, and cue keys** at the times things happen.
 5. **Register it** in `timelines/registry.ts`:
    ```ts
-   export const SCENARIO_TIMELINES: Readonly<Record<string, Timeline>> = {
-     [s1Jamming.scenarioId as string]: s1Jamming,
+   export const SCENARIO_TIMELINES: Readonly<Record<string, readonly Timeline[]>> = {
+     S3: [s3Jamming],
    };
    ```
-   The key must equal the timeline's `scenarioId` (the test enforces this). That enables the scenario's
-   button in the left panel and adds it to the timeline picker.
+   The key must equal every listed timeline's `scenarioId` (the test enforces this). That enables
+   the scenario's button in the left panel and adds it to the timeline picker. A scenario with
+   several threats can list several timelines; give each a distinct `variant` (e.g. S2's
+   "False telemetry" and "Flight-computer malware") and they appear as sub-buttons.
 6. **Check it:**
    ```bash
    pnpm --filter @ov1/web test     # registry.test.ts validates your timeline against the catalog
@@ -40,13 +42,13 @@ import { getScenario } from "@ov1/catalog";
 import { nodeIdOfKind, scenarioTargets } from "../roles";
 import type { Timeline } from "../types";
 
-const scenario = getScenario("S1");            // the only literal ID, and the registry key matches it
+const scenario = getScenario("S3");            // the only literal ID, and the registry key matches it
 const UAV = nodeIdOfKind("uav");
 const GCS = nodeIdOfKind("gcs");
 const { threats, links } = scenarioTargets(scenario);
 
-export const s1Jamming: Timeline = {
-  id: "s1-jamming",
+export const s3Jamming: Timeline = {
+  id: "s3-jamming",
   label: `${scenario.id} · ${scenario.name} (storyboard)`,
   scenarioId: scenario.id,
   durationS: 45,
@@ -72,7 +74,7 @@ export const s1Jamming: Timeline = {
 };
 ```
 
-This is illustrative. A real S1 should take its timing and behavior from the sim once `sim-runner`
+This is illustrative. A real S3 should take its timing and behavior from the sim once `sim-runner`
 exists (README Rule 1), and keep only choreography such as captions and pacing in the script. Until then,
 label placeholder storyboards `(storyboard)` so nobody mistakes them for sim output.
 
@@ -87,6 +89,7 @@ label placeholder storyboards `(storyboard)` so nobody mistakes them for sim out
 | `id` | kebab-case string | Unique across all timelines |
 | `label` | string | Shown in the playback panel |
 | `scenarioId?` | catalog scenario ID | Set it for scenario timelines |
+| `variant?` | string | Short name when a scenario has several timelines (sub-button label) |
 | `durationS` | > 0 | Every track, key, and cue must fit inside it |
 | `loop` | boolean | Looping timelines must end where they start (validator checks it) |
 | `actors?` | `{ [nodeId]: ActorTrack }` | Nodes without a track stay at home |
@@ -172,20 +175,24 @@ match the segment boundaries (see `refuel-op.ts`, which keys both off one `T` ta
 ### Attacks on the refuel op
 
 To storyboard an attack on the baseline mission, don't copy `refuel-op.ts`. Call
-`refuelAttackTimeline()` from `timelines/refuel-attack.ts` (see `s2-spoofing.ts`,
-`s3-false-telemetry.ts`, `s4-malware.ts`). You give it:
+`refuelAttackTimeline()` from `timelines/refuel-attack.ts` (see `s1-gps-spoofing.ts`,
+`s2-false-telemetry.ts`, `s2-malware.ts`). You give it:
 
-- `attackAtS`: the nominal mission plays until here, then the red attack step starts. The cut must
-  land inside a `hold` / `orbit` or on a segment boundary of the nominal tracks (`fitSegments`
-  throws otherwise).
-- `attack`: the injected step's title, detail, and watch list (use parameter-table names).
+- `attackAtS`: the nominal mission plays until here, then the red attack step starts.
+- `divergeAtS` (optional, ≤ `attackAtS`): where motion leaves the nominal profile when the attack
+  shapes the step it interrupts (S2 false telemetry diverges at launch, attacks off the bow). The
+  cut must land inside a `hold` / `orbit` or on a segment boundary (`fitSegments` throws otherwise).
+- `variant` and `threats` when the scenario has several threats: name this animation and say
+  which threat it uses. Pick the threat with `scenarioThreatByLinkState()`, not a literal ID.
+- `attack`: the injected step's title, detail, and watch list. Use parameter-table names that the
+  table maps to the step the attack follows or leads into (the tests enforce this).
 - `after`: nominal steps that still happen, by number, at their new start times.
 - `tanker` (and optionally `receiver`) segments from `attackAtS` on. An omitted receiver keeps
   its nominal track.
 - `reveal`: adversary nodes that appear at `attackAtS`. Every other hostile node stays hidden.
 - `links` and `cues` for the attack and its consequence.
 
-The builder activates the scenario's threats at `attackAtS`, hides all hostile nodes before it,
+The builder activates the chosen threats at `attackAtS`, hides all hostile nodes before it,
 clips nominal captions and status there, and labels the result `(storyboard)`.
 
 ### Baseline missions vs. scenarios
@@ -213,7 +220,7 @@ factual, uppercase for status (`LOST-LINK · RTB`), sentence case for captions.
   frame.links.get(linkId);            // "denied"
   ```
 - `validateTimeline(tl)` returns readable errors such as
-  `s1-jamming: actor N-UAV: orbit at t=10s starts 3.10u from the actor; add a flyTo first`.
+  `s3-jamming: actor N-UAV: orbit at t=10s starts 3.10u from the actor; add a flyTo first`.
 
 ## Checklist before the PR
 

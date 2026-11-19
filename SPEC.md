@@ -190,33 +190,31 @@ contested-ov1/
 | `L-GNSS` | GNSS downlink (SAT ↔ UAV) | `nominal · degraded · denied · spoofed` |
 | `L-TLM` | Telemetry downlink (UAV → GCS/C2) | `nominal · degraded · denied · injected` |
 | `L-UPD` | Firmware/software update path (SUP → MX → UAV) | `trusted · compromised` |
-| `L-GCS-C2` | Terrestrial network (GCS ↔ C2) | `nominal · denied (ransomware)` |
+| `L-GCS-C2` | Terrestrial network (GCS ↔ C2 / mission data) | `nominal · injected (data poisoning) · denied` |
 | `L-RCV` | Tanker–receiver coordination datalink (UAV ↔ RCV) | `nominal · degraded · denied · spoofed` |
 
-### 5.3 Scenario presets (from Milestone 1 threat table)
-| ID | Scenario | STRIDE | Candidate external mapping *(verify before citing)* |
-|---|---|---|---|
-| `S1` | Jamming of LOS + BLOS C2 → lost-link | D | ATT&CK for ICS T0814 (Denial of Service); SPARTA for SATCOM |
-| `S2` | GNSS spoofing → nav drift / route deviation | S, T | ATT&CK for ICS T0856 (Spoof Reporting Message) |
-| `S3` | False telemetry injection at GCS (data poisoning) | S, T | ATT&CK for ICS T0832 (Manipulation of View) |
-| `S4` | Malware in flight control software via compromised signed update | T, E | ATT&CK for ICS T0862 (Supply Chain Compromise), T0839 (Module Firmware); MITRE EMB3D |
-| `S5` | Stolen maintenance credential | S, E, I | ATT&CK for ICS T0859 (Valid Accounts) |
-| `S6` | Ransomware on GCS / C2 servers | D, R | ATT&CK Enterprise impact techniques |
+### 5.3 Scenario presets (from the team's mission analysis doc, FAIR scenarios 1–3)
+The team's mission analysis doc is the source of truth for scenarios; IDs follow its FAIR scenario numbering.
 
-Scenarios can be combined, e.g. S1 + S2 together is the realistic EW package.
+| ID | Scenario | Threats | STRIDE | Candidate external mapping *(verify before citing)* |
+|---|---|---|---|---|
+| `S1` | GPS spoofing → navigation integrity failure (mission steps 4, 8, 9, 10, 16) | `T-GNSS-SPOOF` | S, T | ATT&CK for ICS T0856 (Spoof Reporting Message) |
+| `S2` | Supply-chain malware / false data injection (C2 or flight-control software) | `T-FW-MALWARE`, `T-TLM-INJECT` | S, T, E | ATT&CK for ICS T0862 (Supply Chain Compromise), T0839 (Module Firmware), T0832 (Manipulation of View); MITRE EMB3D |
+| `S3` | C2 link jamming / outage → lost-link | `T-JAM-C2` | D | ATT&CK for ICS T0814 (Denial of Service); SPARTA for SATCOM |
+
+`S2` has two animations (variants), one per threat: false telemetry (poisoned operational data reaches the ground system and aircraft) and flight-computer malware (compromised signed update). Scenarios can be combined, e.g. S1 + S3 together is the realistic EW package.
 
 ### 5.4 Controls (toggleable)
 Each control has an ID, a cost estimate (annual $), and declared effects on **sim parameters** and/or **FAIR factors**.
 
-Initial set: frequency hopping / anti-jam waveform · nulling antenna · multi-constellation GNSS + spoof detection · INS fallback / dead reckoning · independent sensor cross-check (the Milestone 1 "variability limits") · link encryption + authentication · secure boot + signed firmware with independent verification · just-in-time / short-lived maintenance privileges · GCS network segmentation + immutable backups · **dedicated UAV security team (~$4M/yr, the Milestone 1 proposal)**, modeled as a bundle that improves detection and response.
+Initial set: frequency hopping / anti-jam waveform · nulling antenna · multi-constellation GNSS + spoof detection · INS fallback / dead reckoning · independent sensor cross-check (the Milestone 1 "variability limits") · link encryption + authentication · secure boot + signed firmware with independent verification · **dedicated UAV security team (~$4M/yr, the Milestone 1 proposal)**, modeled as a bundle that improves detection and response.
 
-Lost-link procedure is a **config**, not a control: `RTB · loiter-then-RTB · continue-mission · land-immediate`. Comparing procedures under S1 is a headline result.
+Lost-link procedure is a **config**, not a control: `RTB · loiter-then-RTB · continue-mission · land-immediate`. Comparing procedures under S3 is a headline result.
 
 ### 5.5 Adversary profiles (STIX 2.1)
 Notional actors modeled on public reporting, stored as a STIX 2.1 bundle (`threat-actor`, `intrusion-set`, `attack-pattern`, `course-of-action`, `relationship`). Each profile carries FAIR inputs: **Threat Event Frequency** and **Threat Capability** ranges.
-- `ADV-1` Nation-state EW unit (S1, S2)
-- `ADV-2` Nation-state cyber operator / APT (S3, S4, S5)
-- `ADV-3` Criminal ransomware affiliate (S6; LockBit 2023 incident as the reference case)
+- `ADV-1` Nation-state EW unit (S1, S3)
+- `ADV-2` Nation-state cyber operator / APT (S2)
 
 ---
 
@@ -382,9 +380,9 @@ Dates assume the 24 Nov due date. Adjust once presentation slots are posted.
 
 | Week of | Milestone | Exit criteria |
 |---|---|---|
-| **Nov 2** | **M0, Foundations** | Repo scaffolded, CI green, catalog schema + all S1–S6 entries, static OV-1 scene with every node and link, ADR-0001 through 0005, OV-1 reference set collected |
+| **Nov 2** | **M0, Foundations** | Repo scaffolded, CI green, catalog schema + all S1–S3 entries, static OV-1 scene with every node and link, ADR-0001 through 0005, OV-1 reference set collected |
 | **Nov 9** | **M1, Living OV-1** | Sim engine with link + nav models, presets S1–S3 animate end to end, link toggles and lost-link procedures work, event log + replay |
-| **Nov 16** | **M2, Quantified** | S4–S6 in, headless Monte Carlo → Vuln, FAIR engine passing Python golden tests, risk drawer with LEC + ROSI, controls wired |
+| **Nov 16** | **M2, Quantified** | headless Monte Carlo → Vuln, FAIR engine passing Python golden tests, risk drawer with LEC + ROSI, controls wired |
 | **Nov 23** | **M3, Ship** | Visual polish, URL deep-links for the demo, report in `docs/report/`, presentation deck + recorded backup demo, every member's speaking section mapped to a part of the app |
 
 ---

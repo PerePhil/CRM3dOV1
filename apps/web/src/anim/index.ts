@@ -24,6 +24,7 @@ export {
   MISSION_TIMELINES,
   SCENARIO_TIMELINES,
   timelineForScenario,
+  timelinesForScenario,
 } from "./timelines/registry";
 export type * from "./types";
 export { validateTimeline } from "./validate";

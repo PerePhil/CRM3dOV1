@@ -6,8 +6,8 @@ describe("catalog", () => {
     expect(() => Catalog.parse(catalog)).not.toThrow();
   });
 
-  it("ships the six SPEC §5.3 scenarios", () => {
-    expect(catalog.scenarios.map((s) => s.id)).toEqual(["S1", "S2", "S3", "S4", "S5", "S6"]);
+  it("ships the three SPEC §5.3 scenarios (mission analysis doc)", () => {
+    expect(catalog.scenarios.map((s) => s.id)).toEqual(["S1", "S2", "S3"]);
   });
 
   it("every scenario resolves to at least one threat with a STRIDE category", () => {

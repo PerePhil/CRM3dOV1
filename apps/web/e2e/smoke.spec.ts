@@ -26,7 +26,7 @@ test("app boots into the OV-1 shell with no console errors", async ({ page }) =>
   );
   await expect(page.getByTestId("banner-bottom")).toBeVisible();
   await expect(page.getByRole("heading", { name: "CONTESTED // OV-1" })).toBeVisible();
-  await expect(page.getByTestId("scenario-list").locator("li")).toHaveCount(6);
+  await expect(page.getByTestId("scenario-list").locator(":scope > li")).toHaveCount(3);
   await expect(page.locator("canvas")).toBeVisible();
   await expect(page.getByTestId("callout-N-UAV")).toBeVisible();
   await expect(page.getByTestId("legend")).toBeVisible();
@@ -88,7 +88,7 @@ test("refuel op hides adversaries; an attack storyboard reveals one with a red s
   await expect(page.getByTestId("callout-N-ADV-CYBER")).toHaveCount(0);
   await expect(page.getByTestId("callout-N-ADV-SPOOF")).toHaveCount(0);
 
-  await page.getByTestId("scenario-S4").click();
+  await page.getByTestId("scenario-variant-s2-malware").click();
   await page.getByTestId("playback-toggle").click();
   await expect(page.getByTestId("callout-N-ADV-CYBER")).toHaveCount(0);
   await page.getByTestId("mission-step-attack").getByRole("button").click();
@@ -96,5 +96,5 @@ test("refuel op hides adversaries; an attack storyboard reveals one with a red s
   await expect(page.getByTestId("mission-step-attack")).toHaveAttribute("aria-current", "step");
   await expect(page.getByTestId("callout-N-ADV-CYBER")).toBeVisible();
   await expect(page.getByTestId("callout-N-ADV-JAM")).toHaveCount(0);
-  await page.screenshot({ path: "test-results/ov1-s4-attack.png" });
+  await page.screenshot({ path: "test-results/ov1-s2-malware-attack.png" });
 });

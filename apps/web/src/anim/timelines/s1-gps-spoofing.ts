@@ -1,5 +1,9 @@
 /**
- * S2 · GNSS spoofing on the refuel op (storyboard).
+ * S1 · GPS spoofing → navigation integrity failure, on the refuel op (storyboard).
+ *
+ * Mission analysis doc, FAIR Scenario 1 (mission steps 4, 8, 9, 10, 16): "In contested airspace a
+ * nation-state actor spoofs GNSS → UAV deviates from course → mission abort or possible
+ * loss/capture of the aircraft." This storyboard shows the capture branch.
  *
  * The fuel transfer completes normally. As the tanker finishes on station, a hostile spoofer
  * captures its GNSS receiver and walks the position fix west of truth, so the carrier appears to
@@ -11,7 +15,7 @@ import type { Vec3 } from "../types";
 import { refuelAttackTimeline } from "./refuel-attack";
 import { REFUEL_OP } from "./refuel-op";
 
-const scenario = getScenario("S2");
+const scenario = getScenario("S1");
 const { links: targetLinks } = scenarioTargets(scenario);
 const TANKER = REFUEL_OP.tanker.id;
 const SPOOFER = nodeIdOfKind("adversary-spoofer");
@@ -19,7 +23,7 @@ const SPOOFER = nodeIdOfKind("adversary-spoofer");
 const { T } = REFUEL_OP;
 const { ANCHOR, ANCHOR_R, ANCHOR_PERIOD_S } = REFUEL_OP.geometry;
 
-/** Attack step between step 15 (separation) and step 16 (return and recovery). */
+/** Attack step between step 15 (separation) and step 16 (return and recovery), a doc-mapped GNSS step. */
 const SPOOF = T.recovery;
 const RTB = SPOOF + 8;
 const FINAL = RTB + 12;
@@ -33,8 +37,8 @@ const ON_FINAL: Vec3 = [10.5, 1.2, -5.5];
 const TOUCHDOWN_AT: Vec3 = [12.5, GROUND_Y, -5.5];
 const ROLLOUT_AT: Vec3 = [15, GROUND_Y, -5.5];
 
-export const s2Spoofing = refuelAttackTimeline({
-  id: "s2-spoofing",
+export const s1GpsSpoofing = refuelAttackTimeline({
+  id: "s1-gps-spoofing",
   scenarioId: scenario.id,
   attackAtS: SPOOF,
   attack: {
@@ -107,4 +111,4 @@ export const s2Spoofing = refuelAttackTimeline({
 });
 
 /** Exported for tests. */
-export const S2_TIMES = { SPOOF, RTB, TOUCHDOWN, STOPPED, END } as const;
+export const S1_TIMES = { SPOOF, RTB, TOUCHDOWN, STOPPED, END } as const;

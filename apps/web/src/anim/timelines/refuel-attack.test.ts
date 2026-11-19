@@ -1,4 +1,4 @@
-import { catalog } from "@ov1/catalog";
+import { catalog, getThreat } from "@ov1/catalog";
 import { describe, expect, it } from "vitest";
 import { SCENERY } from "../../scene/layout";
 import { compileTimeline } from "../compile";
@@ -8,9 +8,9 @@ import type { MotionSegment, Timeline, Vec3 } from "../types";
 import { distance } from "../vec";
 import { clipCues, fitSegments } from "./refuel-attack";
 import { REFUEL_OP, refuelOpTimeline } from "./refuel-op";
-import { S2_TIMES, s2Spoofing } from "./s2-spoofing";
-import { S3_TIMES, s3FalseTelemetry } from "./s3-false-telemetry";
-import { S4_TIMES, s4Malware } from "./s4-malware";
+import { S1_TIMES, s1GpsSpoofing } from "./s1-gps-spoofing";
+import { S2_FDI_TIMES, s2FalseTelemetry } from "./s2-false-telemetry";
+import { S2_MALWARE_TIMES, s2Malware } from "./s2-malware";
 
 const TANKER = nodeIdOfKind("uav");
 const RECEIVER = nodeIdOfKind("receiver");
@@ -30,29 +30,32 @@ const watchedAt = (n: number | undefined) =>
 
 const cases = [
   {
-    tl: s3FalseTelemetry,
-    attackAt: S3_TIMES.INJECT,
-    after: 7,
-    next: 8,
-    reveal: nodeIdOfKind("adversary-cyber"),
-  },
-  {
-    tl: s4Malware,
-    attackAt: S4_TIMES.TRIGGER,
-    after: 14,
-    next: undefined,
-    reveal: nodeIdOfKind("adversary-cyber"),
-  },
-  {
-    tl: s2Spoofing,
-    attackAt: S2_TIMES.SPOOF,
+    tl: s1GpsSpoofing,
+    attackAt: S1_TIMES.SPOOF,
+    divergeAt: S1_TIMES.SPOOF,
     after: 15,
     next: 16,
     reveal: nodeIdOfKind("adversary-spoofer"),
   },
+  {
+    tl: s2FalseTelemetry,
+    attackAt: S2_FDI_TIMES.OFF_BOW,
+    divergeAt: S2_FDI_TIMES.LAUNCH,
+    after: 8,
+    next: undefined,
+    reveal: nodeIdOfKind("adversary-cyber"),
+  },
+  {
+    tl: s2Malware,
+    attackAt: S2_MALWARE_TIMES.TRIGGER,
+    divergeAt: S2_MALWARE_TIMES.TRIGGER,
+    after: 14,
+    next: undefined,
+    reveal: nodeIdOfKind("adversary-cyber"),
+  },
 ] as const;
 
-describe.each(cases)("$tl.id", ({ tl, attackAt, after, next, reveal }) => {
+describe.each(cases)("$tl.id", ({ tl, attackAt, divergeAt, after, next, reveal }) => {
   const ct = compileTimeline(tl);
   const pos = posIn(tl);
 
@@ -80,9 +83,10 @@ describe.each(cases)("$tl.id", ({ tl, attackAt, after, next, reveal }) => {
 
   it("flies the nominal mission until the attack", () => {
     for (let t = 0; t < attackAt; t += 0.5) {
+      expect(evaluate(ct, t).stepIndex).toBe(evaluate(nominal, t).stepIndex);
+      if (t >= divergeAt) continue;
       expect(distance(pos(TANKER, t), nominalPos(TANKER, t))).toBeLessThan(1e-6);
       expect(distance(pos(RECEIVER, t), nominalPos(RECEIVER, t))).toBeLessThan(1e-6);
-      expect(evaluate(ct, t).stepIndex).toBe(evaluate(nominal, t).stepIndex);
     }
   });
 
@@ -96,60 +100,96 @@ describe.each(cases)("$tl.id", ({ tl, attackAt, after, next, reveal }) => {
     }
   });
 
-  it("activates exactly the scenario's threats", () => {
+  it("activates only threats of its scenario, and every threat it uses targets what it shows", () => {
     const scenario = catalog.scenarios.find((s) => s.id === tl.scenarioId);
-    expect([...evaluate(ct, tl.durationS).activeThreats]).toEqual(scenario?.threats);
+    const active = [...evaluate(ct, tl.durationS).activeThreats];
+    expect(active.length).toBeGreaterThan(0);
+    for (const id of active) expect(scenario?.threats).toContain(id);
+    const targeted = new Set(active.flatMap((id) => getThreat(id).targets.links));
+    for (const link of Object.keys(tl.links ?? {})) {
+      const states = (tl.links?.[link] ?? []).map((k) => k.state);
+      if (states.some((s) => s !== "denied")) expect(targeted.has(link), link).toBe(true);
+    }
   });
 });
 
-describe("S3 false telemetry: cold cat shot into the ocean", () => {
-  const pos = posIn(s3FalseTelemetry);
+describe("scenarios follow the mission analysis doc", () => {
+  it("S1 GPS spoofing, S2 supply-chain malware / false data injection, S3 C2 jamming", () => {
+    expect(catalog.scenarios.map((s) => [s.id, s.threats.map((t) => getThreat(t).stride)])).toEqual(
+      [
+        ["S1", [["S", "T"]]],
+        [
+          "S2",
+          [
+            ["T", "E"],
+            ["S", "T"],
+          ],
+        ],
+        ["S3", [["D"]]],
+      ],
+    );
+  });
+
+  it("S2's two animations cover both of its threats", () => {
+    const used = [s2FalseTelemetry, s2Malware].flatMap((tl) => Object.keys(tl.threats ?? {}));
+    expect(new Set(used)).toEqual(new Set(catalog.scenarios.find((s) => s.id === "S2")?.threats));
+  });
+});
+
+describe("S2 false telemetry: under-speed launch into the ocean", () => {
+  const pos = posIn(s2FalseTelemetry);
   const deck = REFUEL_OP.geometry.DECK_SPOT;
 
-  it("holds on deck through the injection, then never climbs after the launch", () => {
-    expect(distance(pos(TANKER, S3_TIMES.LAUNCH - 0.01), deck)).toBeLessThan(1e-6);
-    for (let t = S3_TIMES.LAUNCH; t <= S3_TIMES.END; t += 0.25) {
+  it("launches on time in step 8, then never climbs", () => {
+    expect(distance(pos(TANKER, S2_FDI_TIMES.LAUNCH - 0.01), deck)).toBeLessThan(1e-6);
+    for (let t = S2_FDI_TIMES.LAUNCH; t <= S2_FDI_TIMES.END; t += 0.25) {
       expect(pos(TANKER, t)[1]).toBeLessThanOrEqual(deck[1] + 1e-6);
     }
   });
 
+  it("the attack step interrupts step 8 (Launch and Initial Flight)", () => {
+    const steps = s2FalseTelemetry.steps ?? [];
+    expect(steps.at(-2)?.title).toBe("Launch and Initial Flight");
+    expect(steps.at(-1)?.kind).toBe("attack");
+  });
+
   it("ends in the water just off the bow", () => {
-    const end = pos(TANKER, S3_TIMES.END);
+    const end = pos(TANKER, S2_FDI_TIMES.END);
     expect(end[1]).toBeLessThan(0);
     expect(end[0]).toBeGreaterThan(SCENERY.carrier.position[0] + SCENERY.carrier.size[0] / 2);
     expect(distance(end, deck)).toBeLessThan(6);
   });
 });
 
-describe("S4 malware: tanker flies into the receiver", () => {
-  const pos = posIn(s4Malware);
+describe("S2 malware: tanker flies into the receiver", () => {
+  const pos = posIn(s2Malware);
 
   it("the tanker reaches the receiver at the collision time", () => {
     const gap = (t: number) => distance(pos(TANKER, t), pos(RECEIVER, t));
-    expect(gap(S4_TIMES.TRIGGER)).toBeGreaterThan(0.8);
-    expect(gap(S4_TIMES.COLLIDE)).toBeLessThan(1e-6);
+    expect(gap(S2_MALWARE_TIMES.TRIGGER)).toBeGreaterThan(0.8);
+    expect(gap(S2_MALWARE_TIMES.COLLIDE)).toBeLessThan(1e-6);
   });
 
   it("both airframes end in the water", () => {
-    expect(pos(TANKER, S4_TIMES.END)[1]).toBeLessThan(0);
-    expect(pos(RECEIVER, S4_TIMES.END)[1]).toBeLessThan(0);
+    expect(pos(TANKER, S2_MALWARE_TIMES.END)[1]).toBeLessThan(0);
+    expect(pos(RECEIVER, S2_MALWARE_TIMES.END)[1]).toBeLessThan(0);
   });
 });
 
-describe("S2 spoofing: lands in hostile territory", () => {
-  const pos = posIn(s2Spoofing);
+describe("S1 spoofing: lands in hostile territory", () => {
+  const pos = posIn(s1GpsSpoofing);
   const { position: c, size } = SCENERY.hostileLand;
 
   it("ends stopped on the hostile land mass, not the carrier", () => {
-    const end = pos(TANKER, S2_TIMES.END);
+    const end = pos(TANKER, S1_TIMES.END);
     expect(Math.abs(end[0] - c[0])).toBeLessThan(size[0] / 2);
     expect(Math.abs(end[2] - c[2])).toBeLessThan(size[2] / 2);
     expect(end[1]).toBeLessThan(0.5);
-    expect(distance(pos(TANKER, S2_TIMES.STOPPED), end)).toBeLessThan(1e-6);
+    expect(distance(pos(TANKER, S1_TIMES.STOPPED), end)).toBeLessThan(1e-6);
   });
 
   it("completes the fuel transfer before the attack", () => {
-    const steps = s2Spoofing.steps ?? [];
+    const steps = s1GpsSpoofing.steps ?? [];
     expect(steps.some((s) => s.title === "Transfer Completion and Separation")).toBe(true);
   });
 });

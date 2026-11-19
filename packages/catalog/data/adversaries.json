@@ -9,12 +9,6 @@
     "id": "ADV-2",
     "name": "Nation-state cyber operator (APT)",
     "kind": "nation-state-cyber",
-    "description": "Notional composite. Targets software supply chain, credentials, and ground segment data integrity."
-  },
-  {
-    "id": "ADV-3",
-    "name": "Criminal ransomware affiliate",
-    "kind": "criminal",
-    "description": "Notional composite; Boeing's 2023 LockBit incident is the public reference case."
+    "description": "Notional composite. Targets the software supply chain and ground-segment data integrity (data poisoning)."
   }
 ]

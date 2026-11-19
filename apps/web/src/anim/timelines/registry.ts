@@ -7,21 +7,21 @@ import type { Timeline } from "../types";
 import { idleTimeline } from "./idle";
 import { referenceTimeline } from "./reference";
 import { refuelOpTimeline } from "./refuel-op";
-import { s2Spoofing } from "./s2-spoofing";
-import { s3FalseTelemetry } from "./s3-false-telemetry";
-import { s4Malware } from "./s4-malware";
+import { s1GpsSpoofing } from "./s1-gps-spoofing";
+import { s2FalseTelemetry } from "./s2-false-telemetry";
+import { s2Malware } from "./s2-malware";
 
 /** Plays on load and whenever no scenario animation is selected. */
 export const IDLE_TIMELINE: Timeline = idleTimeline;
 
 /**
- * Scenario animations, keyed by catalog scenario ID (the key must equal the timeline's
- * `scenarioId`). See docs/animation/authoring.md.
+ * Scenario animations, keyed by catalog scenario ID (every timeline's `scenarioId` must equal
+ * its key). A scenario with several threats can have several animations, each with a distinct
+ * `variant`; the first one plays when the scenario is clicked. See docs/animation/authoring.md.
  */
-export const SCENARIO_TIMELINES: Readonly<Record<string, Timeline>> = {
-  [s2Spoofing.scenarioId as string]: s2Spoofing,
-  [s3FalseTelemetry.scenarioId as string]: s3FalseTelemetry,
-  [s4Malware.scenarioId as string]: s4Malware,
+export const SCENARIO_TIMELINES: Readonly<Record<string, readonly Timeline[]>> = {
+  S1: [s1GpsSpoofing],
+  S2: [s2FalseTelemetry, s2Malware],
 };
 
 /**
@@ -33,8 +33,14 @@ export const MISSION_TIMELINES: readonly Timeline[] = [refuelOpTimeline];
 /** Shown in the timeline picker in dev builds only. */
 export const DEV_TIMELINES: readonly Timeline[] = [referenceTimeline];
 
+/** Every animation of a scenario (empty if none is authored yet). */
+export function timelinesForScenario(scenarioId: string): readonly Timeline[] {
+  return SCENARIO_TIMELINES[scenarioId] ?? [];
+}
+
+/** The animation that plays when the scenario is clicked. */
 export function timelineForScenario(scenarioId: string): Timeline | undefined {
-  return SCENARIO_TIMELINES[scenarioId];
+  return timelinesForScenario(scenarioId)[0];
 }
 
 /** Every timeline the picker may offer, idle first. */
@@ -42,7 +48,7 @@ export function availableTimelines(includeDev: boolean): Timeline[] {
   return [
     IDLE_TIMELINE,
     ...MISSION_TIMELINES,
-    ...Object.values(SCENARIO_TIMELINES),
+    ...Object.values(SCENARIO_TIMELINES).flat(),
     ...(includeDev ? DEV_TIMELINES : []),
   ];
 }

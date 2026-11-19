@@ -132,6 +132,11 @@ export interface Timeline {
   label: string;
   /** The catalog scenario this animates, if any. */
   scenarioId?: string;
+  /**
+   * Short name of this animation when a scenario has several (e.g. S2's "False telemetry" and
+   * "Flight-computer malware"). Shown as a sub-button under the scenario.
+   */
+  variant?: string;
   durationS: number;
   /** Wrap at durationS. Looping timelines must end where they start (validate.ts checks). */
   loop: boolean;
