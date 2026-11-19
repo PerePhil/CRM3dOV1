@@ -275,6 +275,24 @@ describe("evaluate(): channels", () => {
     expect(evaluate(compileTimeline({ ...tl, steps: undefined }), 5).stepIndex).toBe(-1);
   });
 
+  it("visibility: shown before the first key, then the latest key wins", () => {
+    const vis = compileTimeline({
+      ...tl,
+      visibility: {
+        [GCS]: [
+          { tS: 0, visible: false },
+          { tS: 4, visible: true },
+        ],
+        [UAV]: [{ tS: 2, visible: false }],
+      },
+    });
+    expect(evaluate(vis, 0).hidden.has(GCS)).toBe(true);
+    expect(evaluate(vis, 1).hidden.has(UAV)).toBe(false);
+    expect(evaluate(vis, 3).hidden).toEqual(new Set([GCS, UAV]));
+    expect(evaluate(vis, 4).hidden).toEqual(new Set([UAV]));
+    expect(evaluate(ct, 3).hidden.size).toBe(0);
+  });
+
   it("untracked nodes are at home", () => {
     expect(livePosition(evaluate(ct, 3), GCS)).toEqual(homePosition(GCS));
   });

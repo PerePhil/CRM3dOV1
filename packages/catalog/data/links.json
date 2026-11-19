@@ -53,12 +53,12 @@
   },
   {
     "id": "L-GCS-C2",
-    "name": "Terrestrial network (GCS ↔ C2)",
+    "name": "Terrestrial network (GCS ↔ C2 / mission data)",
     "label": "TERRESTRIAL NET",
     "from": "N-GCS",
     "to": "N-C2",
     "medium": "wired",
-    "states": ["nominal", "denied"],
+    "states": ["nominal", "injected", "denied"],
     "defaultState": "nominal"
   },
   {

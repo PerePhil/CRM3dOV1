@@ -26,7 +26,7 @@ test("app boots into the OV-1 shell with no console errors", async ({ page }) =>
   );
   await expect(page.getByTestId("banner-bottom")).toBeVisible();
   await expect(page.getByRole("heading", { name: "CONTESTED // OV-1" })).toBeVisible();
-  await expect(page.getByTestId("scenario-list").locator("li")).toHaveCount(6);
+  await expect(page.getByTestId("scenario-list").locator(":scope > li")).toHaveCount(3);
   await expect(page.locator("canvas")).toBeVisible();
   await expect(page.getByTestId("callout-N-UAV")).toBeVisible();
   await expect(page.getByTestId("legend")).toBeVisible();
@@ -77,4 +77,24 @@ test("refuel op: mission steps panel follows playback and seeks", async ({ page 
   await page.getByTestId("mission-step-next").click();
   await expect(page.getByTestId("mission-step-counter")).toHaveText("STEP 15 / 18");
   await page.screenshot({ path: "test-results/ov1-refuel-op.png" });
+});
+
+test("refuel op hides adversaries; an attack storyboard reveals one with a red step", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByTestId("mission-load-refuel-op").click();
+  await expect(page.getByTestId("callout-N-RCV")).toBeVisible();
+  await expect(page.getByTestId("callout-N-ADV-CYBER")).toHaveCount(0);
+  await expect(page.getByTestId("callout-N-ADV-SPOOF")).toHaveCount(0);
+
+  await page.getByTestId("scenario-variant-s2-malware").click();
+  await page.getByTestId("playback-toggle").click();
+  await expect(page.getByTestId("callout-N-ADV-CYBER")).toHaveCount(0);
+  await page.getByTestId("mission-step-attack").getByRole("button").click();
+  await expect(page.getByTestId("mission-step-counter")).toHaveText("ATTACK · AFTER STEP 14");
+  await expect(page.getByTestId("mission-step-attack")).toHaveAttribute("aria-current", "step");
+  await expect(page.getByTestId("callout-N-ADV-CYBER")).toBeVisible();
+  await expect(page.getByTestId("callout-N-ADV-JAM")).toHaveCount(0);
+  await page.screenshot({ path: "test-results/ov1-s2-malware-attack.png" });
 });

@@ -94,40 +94,44 @@ const CALLOUT_Y: Partial<Record<Node["kind"], number>> = { receiver: -1.1 };
  * One OV-1 node: platform icon + callout box (SPEC §8.4). Position and attitude come from the
  * animation layer (anim/), so any node with a track in the playing timeline moves; the rest sit
  * at their home position. The callout lives on the position-only group so it never rolls.
+ * A node the timeline hides (visibility channel) draws nothing, callout included.
  */
 export function Platform({ node, position }: { node: Node; position: Vec3 }) {
   const fill = color(node.affiliation);
   const { root, attitude } = useActorTransform(node.id);
   const status = usePlayback((s) => s.discrete.status.get(node.id));
+  const hidden = usePlayback((s) => s.discrete.hidden.has(node.id));
   const portal = useHtmlPortal();
   return (
-    <group ref={root} position={position}>
+    <group ref={root} position={position} visible={!hidden}>
       <group ref={attitude}>
         <Shape node={node} fill={fill} />
       </group>
-      <Html
-        portal={portal}
-        position={[0, CALLOUT_Y[node.kind] ?? 1.6, 0]}
-        center
-        zIndexRange={[10, 0]}
-        style={{ pointerEvents: "none" }}
-      >
-        <div
-          data-testid={`callout-${node.id}`}
-          className="whitespace-nowrap border border-rule bg-paper px-1.5 py-0.5 text-[10px] font-bold leading-tight shadow-sm"
-          style={{ borderLeft: `4px solid var(--color-${node.affiliation}-strong)` }}
+      {hidden ? null : (
+        <Html
+          portal={portal}
+          position={[0, CALLOUT_Y[node.kind] ?? 1.6, 0]}
+          center
+          zIndexRange={[10, 0]}
+          style={{ pointerEvents: "none" }}
         >
-          {node.label}
-          {status ? (
-            <div
-              data-testid={`callout-status-${node.id}`}
-              className="text-[8px] font-normal uppercase tracking-wide text-ink-muted"
-            >
-              {status}
-            </div>
-          ) : null}
-        </div>
-      </Html>
+          <div
+            data-testid={`callout-${node.id}`}
+            className="whitespace-nowrap border border-rule bg-paper px-1.5 py-0.5 text-[10px] font-bold leading-tight shadow-sm"
+            style={{ borderLeft: `4px solid var(--color-${node.affiliation}-strong)` }}
+          >
+            {node.label}
+            {status ? (
+              <div
+                data-testid={`callout-status-${node.id}`}
+                className="text-[8px] font-normal uppercase tracking-wide text-ink-muted"
+              >
+                {status}
+              </div>
+            ) : null}
+          </div>
+        </Html>
+      )}
     </group>
   );
 }

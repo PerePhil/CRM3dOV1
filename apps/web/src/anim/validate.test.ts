@@ -20,6 +20,41 @@ describe("validateTimeline", () => {
     expect(errorsFor({ steps: [step(0, 1, " ")] })).toMatch(/empty title/);
   });
 
+  it("checks visibility keys: catalog nodes, sorted, inside the timeline", () => {
+    expect(
+      validateTimeline({ ...base, visibility: { [UAV]: [{ tS: 0, visible: false }] } }),
+    ).toEqual([]);
+    expect(errorsFor({ visibility: { "N-NOPE": [] } })).toMatch(/visibility: unknown node/);
+    expect(errorsFor({ visibility: { [UAV]: [{ tS: 11, visible: true }] } })).toMatch(
+      /tS outside timeline/,
+    );
+    expect(
+      errorsFor({
+        visibility: {
+          [UAV]: [
+            { tS: 5, visible: true },
+            { tS: 1, visible: false },
+          ],
+        },
+      }),
+    ).toMatch(/sorted/);
+  });
+
+  it("an attack step needs a scenario with a threat track", () => {
+    const steps = [{ tS: 0, n: 1, title: "x", kind: "attack" as const }];
+    expect(errorsFor({ steps })).toMatch(/attack step needs/);
+    const threat = catalog.threats[0]?.id ?? "";
+    const scenarioId = catalog.scenarios[0]?.id ?? "";
+    expect(
+      validateTimeline({
+        ...base,
+        steps,
+        scenarioId,
+        threats: { [threat]: [{ tS: 0, active: true }] },
+      }),
+    ).toEqual([]);
+  });
+
   it("accepts a minimal timeline", () => {
     expect(validateTimeline(base)).toEqual([]);
   });

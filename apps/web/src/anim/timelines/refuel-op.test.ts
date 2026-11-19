@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compileTimeline } from "../compile";
 import { evaluate } from "../evaluate";
-import { nodeIdOfKind } from "../roles";
+import { hostileNodeIds, nodeIdOfKind } from "../roles";
 import type { Vec3 } from "../types";
 import { distance } from "../vec";
 import { REFUEL_OP_TIMES as T, refuelOpTimeline as tl } from "./refuel-op";
@@ -58,5 +58,14 @@ describe("refuel-op timeline", () => {
   it("the receiver closes from pre-contact to contact during refueling prep", () => {
     const gap = (t: number) => distance(pos(TANKER, t), pos(RECEIVER, t));
     expect(gap(T.xferPrep)).toBeGreaterThan(gap(T.xfer) + 0.8);
+  });
+
+  it("shows no enemy activity: every adversary platform is hidden for the whole mission", () => {
+    expect(hostileNodeIds().length).toBeGreaterThan(0);
+    for (let t = 0; t <= tl.durationS; t += 2) {
+      const hidden = evaluate(ct, t).hidden;
+      for (const id of hostileNodeIds()) expect(hidden.has(id)).toBe(true);
+    }
+    expect(tl.threats).toBeUndefined();
   });
 });

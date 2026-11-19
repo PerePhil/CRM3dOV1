@@ -105,6 +105,11 @@ export function validateTimeline(tl: Timeline): string[] {
     checkKeys(keys, `threat ${id}`);
   }
 
+  for (const [id, keys] of Object.entries(tl.visibility ?? {})) {
+    if (!nodes.has(id)) err(`visibility: unknown node ${id}`);
+    checkKeys(keys, `visibility ${id}`);
+  }
+
   (tl.cues ?? []).forEach((c, i) => {
     const where = `cues[${i}] (${c.kind})`;
     if (!(c.tS >= 0 && c.tS <= tl.durationS + EPS)) err(`${where}: tS outside timeline`);
@@ -120,6 +125,9 @@ export function validateTimeline(tl: Timeline): string[] {
     if (prev && !(s.tS > prev.tS)) err(`${where}: steps must have strictly increasing tS`);
     if (!s.title.trim()) err(`${where}: empty title`);
     if (s.watch?.some((w) => !w.trim())) err(`${where}: empty watch entry`);
+    if (s.kind === "attack" && !(tl.scenarioId && Object.keys(tl.threats ?? {}).length > 0)) {
+      err(`${where}: an attack step needs a scenarioId and at least one threat track`);
+    }
   });
 
   // Structural checks passed: compile and check continuity.

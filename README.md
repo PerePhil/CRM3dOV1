@@ -88,7 +88,7 @@ system that every person *and* every coding agent can read, claim, and close thr
 |---|---|---|
 | M0: Foundations | Nov 8 | Repo live with guardrails, contracts seeded, static OV-1, ADRs, OV-1 refs |
 | M1: Living OV-1 | Nov 15 | Sim engine; S1–S3 animate; link toggles, lost-link, event log + replay |
-| M2: Quantified | Nov 22 | S4–S6; Monte Carlo → Vuln; FAIR engine; risk drawer with LEC + ROSI |
+| M2: Quantified | Nov 22 | Monte Carlo → Vuln; FAIR engine; risk drawer with LEC + ROSI |
 | M3: Ship | Nov 24 | Polish, demo links, report, deck + recorded backup, speaker map |
 
 ---
@@ -169,7 +169,7 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 | Path | Purpose |
 |---|---|
 | `packages/core/` | `rng.ts`: **frozen** seeded PRNG (xoshiro128\*\*) with order-independent `fork()` for parallel Monte Carlo. `units.ts`: dB/SI helpers. |
-| `packages/catalog/` | **The contract.** `src/schema.ts` (**frozen** zod schemas with referential-integrity checks) + `data/*.json` (10 nodes, 6 links, 6 threats, 10 controls, 3 adversaries, S1–S6). `stix/` holds the STIX 2.1 bundle. |
+| `packages/catalog/` | **The contract.** `src/schema.ts` (**frozen** zod schemas with referential-integrity checks) + `data/*.json` (11 nodes, 7 links, 4 threats, 8 controls, 2 adversaries, S1–S3). `stix/` holds the STIX 2.1 bundle. |
 | `packages/sim/` | `events.ts`: **frozen** event-log contract. `log.ts`: append-only, immutable log. Link, nav, kinematics, and lost-link models arrive via M1 tasks. |
 | `packages/risk/` | Beta-PERT / Gamma / Beta / lognormal samplers, summaries, loss exceedance, ROSI. FAIR pipeline arrives via M2 tasks. |
 | `apps/web/` | Vite + React Three Fiber OV-1. `theme/tokens.css` is the only place colors and fonts live. `scene/` has the diorama layout, lightning-bolt links, platform icons, and callouts. `components/` has the banner, title block, legend, caption overlay, and panels. `anim/` is the animation layer: Timeline format, pure interpreter, playback clock, R3F bindings, sim → timeline adapter, and the registered timelines (idle holding orbit by default). `panels/` has the scenario picker, playback controls, and live link table. `e2e/` has the Playwright smoke test. `public/_headers` sets the CSP and security headers on Cloudflare Pages (and on `vite preview`, so e2e runs under the same CSP); `public/robots.txt` blocks crawlers until the class reveal. |

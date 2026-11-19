@@ -30,9 +30,32 @@ describe("timeline registry", () => {
 
   it("scenario timelines are keyed by their own catalog scenario ID", () => {
     const scenarioIds = new Set(catalog.scenarios.map((s) => s.id));
-    for (const [key, tl] of Object.entries(SCENARIO_TIMELINES)) {
+    for (const [key, tls] of Object.entries(SCENARIO_TIMELINES)) {
       expect(scenarioIds.has(key)).toBe(true);
-      expect(tl.scenarioId).toBe(key);
+      expect(tls.length).toBeGreaterThan(0);
+      for (const tl of tls) expect(tl.scenarioId).toBe(key);
+    }
+  });
+
+  it("a scenario with several animations names each variant distinctly", () => {
+    for (const tls of Object.values(SCENARIO_TIMELINES)) {
+      if (tls.length < 2) continue;
+      const names = tls.map((t) => t.variant ?? "");
+      expect(names.every((n) => n.trim().length > 0)).toBe(true);
+      expect(new Set(names).size).toBe(names.length);
+    }
+  });
+
+  it("scenario IDs are written out only in the registry (AGENTS.md §6.1)", () => {
+    const sources = import.meta.glob(["./*.ts", "!./registry.ts", "!./*.test.ts"], {
+      query: "?raw",
+      import: "default",
+      eager: true,
+    }) as Record<string, string>;
+    expect(Object.keys(sources).length).toBeGreaterThan(0);
+    const ids = catalog.scenarios.map((s) => s.id);
+    for (const [file, src] of Object.entries(sources)) {
+      for (const id of ids) expect(src.includes(`"${id}"`), `${file} names ${id}`).toBe(false);
     }
   });
 

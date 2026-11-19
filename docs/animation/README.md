@@ -46,12 +46,14 @@ flowchart LR
 | `anim/space.ts` | `homePosition`, `resolvePlace`, `livePosition(frame, id)`, `linkStateOf(frame, link)`. |
 | `anim/roles.ts` | Catalog lookups so scripts never hardcode IDs: `nodeIdOfKind`, `linkIdsTouching`, `scenarioTargets`. |
 | `anim/fromSim.ts` | `timelineFromSim()`: sim event log + position samples → Timeline. |
-| `anim/timelines/registry.ts` | **The one wiring point.** `IDLE_TIMELINE`, `MISSION_TIMELINES`, `SCENARIO_TIMELINES`, `DEV_TIMELINES`. |
-| `anim/timelines/refuel-op.ts` | Baseline mission: the 18-step refuel op (tanker + receiver formation), with `steps`. |
+| `anim/timelines/registry.ts` | **The one wiring point.** `IDLE_TIMELINE`, `MISSION_TIMELINES`, `SCENARIO_TIMELINES` (one or more per scenario), `DEV_TIMELINES`. |
+| `anim/timelines/refuel-op.ts` | Baseline mission: the 18-step refuel op (tanker + receiver formation), with `steps`. Adversaries hidden. Exports `REFUEL_OP` building blocks. |
+| `anim/timelines/refuel-attack.ts` | `refuelAttackTimeline()`: replays the refuel op up to an attack, injects a red `attack` step, reveals the adversary, plays the consequence. |
+| `anim/timelines/s1-gps-spoofing.ts`, `s2-false-telemetry.ts`, `s2-malware.ts` | Attack storyboards on the refuel op, per the mission analysis doc: S1 lands in hostile territory; S2's two variants ditch an under-speed launch and fly into the receiver. |
 | `anim/timelines/idle.ts` | The default timeline: the UAV flies a holding orbit, "LOITER · AWAITING TASKING". |
 | `anim/timelines/reference.ts` | Dev-only demo that exercises every primitive and channel. Copy its patterns. |
 | `panels/PlaybackControls.tsx` | Timeline picker, play/pause, restart, speed, scrubber, `T+mm:ss.s` clock. |
-| `panels/ScenarioList.tsx` | Clicking a scenario plays its registered timeline. Clicking it again returns to idle. |
+| `panels/ScenarioList.tsx` | Clicking a scenario plays its first registered timeline; a scenario with several lists each `variant` as a sub-button. Clicking again returns to idle. |
 | `components/CaptionOverlay.tsx` | Caption cues, top of the viewport. |
 | `panels/MissionSteps.tsx` | The playing timeline's written procedure. Active step highlighted; click / Prev / Next seek. |
 
@@ -64,7 +66,8 @@ flowchart LR
 | Threat active | `threats[threatId]: ThreatKey[]` | `frame.activeThreats` / `snapshot.discrete.activeThreats` | Nothing yet. **Volumes:** `threat-volumes` task |
 | Caption | `cues: {kind:"caption"}` | `snapshot.discrete.captions` | `CaptionOverlay` |
 | Node status | `cues: {kind:"status"}` | `snapshot.discrete.status` | Second line of the node's callout |
-| Mission step | `steps: MissionStep[]` | `frame.stepIndex` / `snapshot.discrete.stepIndex` | `panels/MissionSteps.tsx` (right panel) |
+| Node visibility | `visibility[nodeId]: VisibilityKey[]` | `frame.hidden` / `snapshot.discrete.hidden` | `Platform` (icon and callout not drawn while hidden) |
+| Mission step | `steps: MissionStep[]` (`kind: "attack"` for injected adversary steps) | `frame.stepIndex` / `snapshot.discrete.stepIndex` | `panels/MissionSteps.tsx` (right panel; attack steps in hostile red) |
 
 ## Rules (in addition to AGENTS.md)
 

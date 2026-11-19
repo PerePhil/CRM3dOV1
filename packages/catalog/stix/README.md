@@ -4,7 +4,7 @@
 `threat-actor`, `intrusion-set`, `attack-pattern`, `course-of-action`, and the `relationship`
 objects linking them.
 
-- One `threat-actor` per catalog adversary (`ADV-1`…`ADV-3`). Put its STIX id in that adversary's `stixId` field in `../data/adversaries.json`.
+- One `threat-actor` per catalog adversary (`ADV-1`, `ADV-2`). Put its STIX id in that adversary's `stixId` field in `../data/adversaries.json`.
 - One `attack-pattern` per catalog threat (`T-*`), with `external_references` for the ATT&CK for ICS / EMB3D / SPARTA mappings, but **only once `verified: true`**.
 - One `course-of-action` per catalog control (`C-*`), with `mitigates` relationships.
 - Actors are **notional composites**. Don't attribute operations to named real-world groups beyond what's publicly reported, and cite that reporting in `external_references`.

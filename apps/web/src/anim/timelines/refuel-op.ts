@@ -8,14 +8,15 @@
  * table's "Effected Activities" column becomes each step's `watch` list.
  *
  * This is hand-authored choreography of the NOMINAL mission. It makes no claim about behavior
- * under attack (README Rule 1); S1–S6 timelines will overlay threats on this profile, and the
- * sim decides what the aircraft does then. Labeled (storyboard) until the sim drives it.
+ * under attack (README Rule 1). Scenario storyboards (refuel-attack.ts) reuse the exported
+ * profile below up to the moment an attack is injected. Labeled (storyboard) until the sim
+ * drives it. Adversary platforms are hidden: the nominal mission shows no enemy activity.
  */
 import { catalog } from "@ov1/catalog";
 import { SCENERY } from "../../scene/layout";
-import { nodeIdOfKind } from "../roles";
+import { hostileNodeIds, nodeIdOfKind } from "../roles";
 import { resolvePlace } from "../space";
-import type { Cue, MissionStep, Timeline, Vec3 } from "../types";
+import type { Cue, MissionStep, MotionSegment, Timeline, Vec3 } from "../types";
 
 const TANKER = nodeIdOfKind("uav");
 const RECEIVER = nodeIdOfKind("receiver");
@@ -252,13 +253,131 @@ const receiverStatus: [number, string][] = [
   [T.separation + 12, "CAP · REFUELED"],
 ];
 
-const statusCues = (node: string, entries: [number, string][]): Cue[] =>
+export const statusCues = (node: string, entries: [number, string][]): Cue[] =>
   entries.map(([tS, text], i) => {
     const next = entries[i + 1];
     return next
       ? { kind: "status", tS, durationS: next[0] - tS, node, text }
       : { kind: "status", tS, node, text };
   });
+
+// ---------------------------------------------------------------------------------------------
+// Tracks (exported so scenario storyboards replay the nominal profile up to the attack)
+// ---------------------------------------------------------------------------------------------
+
+const TANKER_SEGMENTS: MotionSegment[] = [
+  // Steps 1–7: on deck at the launch spot, bow (+x).
+  { kind: "hold", durationS: T.launch, headingRad: 0 },
+  // Step 8: catapult launch off the bow and climb out (accelerating).
+  {
+    kind: "flyTo",
+    durationS: T.transit - T.launch,
+    to: [DECK_SPOT[0] + 4, 3.6, LANE_Z - 0.6],
+    ease: "in",
+  },
+  // Step 9: transit; arrive tangent to the anchor orbit.
+  {
+    kind: "flyTo",
+    durationS: T.areaEntry - T.transit,
+    to: onCircle(ANCHOR, ANCHOR_R, ANCHOR_ENTRY_ANGLE),
+    arriveHeadingRad: ANCHOR_ENTRY_ANGLE + CCW_TANGENT,
+  },
+  // Steps 10–15: hold the anchor while the receiver identifies, joins, and refuels.
+  {
+    kind: "orbit",
+    durationS: T.recovery - T.areaEntry,
+    center: ANCHOR,
+    radius: ANCHOR_R,
+    periodS: ANCHOR_PERIOD_S,
+  },
+  // Step 16: return west, swing around astern of the carrier, and trap on the same lane.
+  {
+    kind: "path",
+    durationS: 18,
+    through: [
+      [ANCHOR[0] - 7, 4.8, ANCHOR[2] - 1.8],
+      [STERN_X - 2, 3.8, ANCHOR[2] - 1.2],
+      [STERN_X - 7, 2.8, LANE_Z - 2.3],
+    ],
+  },
+  {
+    kind: "flyTo",
+    durationS: 5,
+    to: [STERN_X - 4.5, DECK_Y + 0.9, LANE_Z],
+    arriveHeadingRad: 0,
+  },
+  { kind: "flyTo", durationS: T.postflight - T.recovery - 23, to: DECK_SPOT, ease: "out" },
+  // Steps 17–18: secured on deck.
+  { kind: "hold", durationS: T.end - T.postflight, headingRad: 0 },
+];
+
+const RECEIVER_SEGMENTS: MotionSegment[] = [
+  // Steps 1–10: on combat air patrol, low on fuel.
+  {
+    kind: "orbit",
+    durationS: T.rcvrId,
+    center: CAP_CENTER,
+    radius: CAP_R,
+    periodS: CAP_PERIOD_S,
+  },
+  // Steps 11–12: inbound to the anchor, arriving in pre-contact astern of the tanker.
+  {
+    kind: "flyTo",
+    durationS: T.xferPrep - T.rcvrId,
+    to: onCircle(RCVR_ORBIT_CENTER, ANCHOR_R, rcvrPrecontactAngle),
+    arriveHeadingRad: rcvrPrecontactAngle + CCW_TANGENT,
+  },
+  // Step 13: close from pre-contact to contact.
+  {
+    kind: "orbit",
+    durationS: T.xfer - T.xferPrep,
+    center: RCVR_ORBIT_CENTER,
+    radius: ANCHOR_R,
+    periodS: CLOSE_PERIOD_S,
+  },
+  // Step 14: in contact, locked to the tanker's orbit.
+  {
+    kind: "orbit",
+    durationS: T.separation - T.xfer,
+    center: RCVR_ORBIT_CENTER,
+    radius: ANCHOR_R,
+    periodS: ANCHOR_PERIOD_S,
+  },
+  // Step 15 onward: separate and return to CAP.
+  {
+    kind: "flyTo",
+    durationS: 12,
+    to: onCircle(CAP_CENTER, CAP_R, 0),
+    arriveHeadingRad: CCW_TANGENT,
+  },
+  {
+    kind: "orbit",
+    durationS: T.end - T.separation - 12,
+    center: CAP_CENTER,
+    radius: CAP_R,
+    periodS: CAP_PERIOD_S,
+  },
+];
+
+/** Nominal captions after the opening one (scenario storyboards open with their own). */
+const CAPTIONS: Cue[] = [
+  { kind: "caption", tS: T.launch, durationS: 5, text: "Catapult launch · climb out" },
+  {
+    kind: "caption",
+    tS: T.rcvrId,
+    durationS: 6,
+    text: "Receiver detected · correlating ID and authorization",
+  },
+  {
+    kind: "caption",
+    tS: T.rcvrCoord,
+    durationS: 6,
+    text: `${rcvrLink.label} up · readiness exchange`,
+  },
+  { kind: "caption", tS: T.xfer, durationS: 8, text: "Contact · fuel transfer in progress" },
+  { kind: "caption", tS: T.separation, durationS: 6, text: "Disconnect · receiver separates" },
+  { kind: "caption", tS: T.postflight - 7, durationS: 7, text: "Recovery · arrested landing" },
+];
 
 // ---------------------------------------------------------------------------------------------
 // Timeline
@@ -270,106 +389,11 @@ export const refuelOpTimeline: Timeline = {
   durationS: T.end,
   loop: false,
   actors: {
-    [TANKER]: {
-      start: DECK_SPOT,
-      startHeadingRad: 0,
-      segments: [
-        // Steps 1–7: on deck at the launch spot, bow (+x).
-        { kind: "hold", durationS: T.launch, headingRad: 0 },
-        // Step 8: catapult launch off the bow and climb out (accelerating).
-        {
-          kind: "flyTo",
-          durationS: T.transit - T.launch,
-          to: [DECK_SPOT[0] + 4, 3.6, LANE_Z - 0.6],
-          ease: "in",
-        },
-        // Step 9: transit; arrive tangent to the anchor orbit.
-        {
-          kind: "flyTo",
-          durationS: T.areaEntry - T.transit,
-          to: onCircle(ANCHOR, ANCHOR_R, ANCHOR_ENTRY_ANGLE),
-          arriveHeadingRad: ANCHOR_ENTRY_ANGLE + CCW_TANGENT,
-        },
-        // Steps 10–15: hold the anchor while the receiver identifies, joins, and refuels.
-        {
-          kind: "orbit",
-          durationS: T.recovery - T.areaEntry,
-          center: ANCHOR,
-          radius: ANCHOR_R,
-          periodS: ANCHOR_PERIOD_S,
-        },
-        // Step 16: return west, swing around astern of the carrier, and trap on the same lane.
-        {
-          kind: "path",
-          durationS: 18,
-          through: [
-            [ANCHOR[0] - 7, 4.8, ANCHOR[2] - 1.8],
-            [STERN_X - 2, 3.8, ANCHOR[2] - 1.2],
-            [STERN_X - 7, 2.8, LANE_Z - 2.3],
-          ],
-        },
-        {
-          kind: "flyTo",
-          durationS: 5,
-          to: [STERN_X - 4.5, DECK_Y + 0.9, LANE_Z],
-          arriveHeadingRad: 0,
-        },
-        { kind: "flyTo", durationS: T.postflight - T.recovery - 23, to: DECK_SPOT, ease: "out" },
-        // Steps 17–18: secured on deck.
-        { kind: "hold", durationS: T.end - T.postflight, headingRad: 0 },
-      ],
-    },
-    [RECEIVER]: {
-      start: onCircle(CAP_CENTER, CAP_R, 0),
-      segments: [
-        // Steps 1–10: on combat air patrol, low on fuel.
-        {
-          kind: "orbit",
-          durationS: T.rcvrId,
-          center: CAP_CENTER,
-          radius: CAP_R,
-          periodS: CAP_PERIOD_S,
-        },
-        // Steps 11–12: inbound to the anchor, arriving in pre-contact astern of the tanker.
-        {
-          kind: "flyTo",
-          durationS: T.xferPrep - T.rcvrId,
-          to: onCircle(RCVR_ORBIT_CENTER, ANCHOR_R, rcvrPrecontactAngle),
-          arriveHeadingRad: rcvrPrecontactAngle + CCW_TANGENT,
-        },
-        // Step 13: close from pre-contact to contact.
-        {
-          kind: "orbit",
-          durationS: T.xfer - T.xferPrep,
-          center: RCVR_ORBIT_CENTER,
-          radius: ANCHOR_R,
-          periodS: CLOSE_PERIOD_S,
-        },
-        // Step 14: in contact, locked to the tanker's orbit.
-        {
-          kind: "orbit",
-          durationS: T.separation - T.xfer,
-          center: RCVR_ORBIT_CENTER,
-          radius: ANCHOR_R,
-          periodS: ANCHOR_PERIOD_S,
-        },
-        // Step 15 onward: separate and return to CAP.
-        {
-          kind: "flyTo",
-          durationS: 12,
-          to: onCircle(CAP_CENTER, CAP_R, 0),
-          arriveHeadingRad: CCW_TANGENT,
-        },
-        {
-          kind: "orbit",
-          durationS: T.end - T.separation - 12,
-          center: CAP_CENTER,
-          radius: CAP_R,
-          periodS: CAP_PERIOD_S,
-        },
-      ],
-    },
+    [TANKER]: { start: DECK_SPOT, startHeadingRad: 0, segments: TANKER_SEGMENTS },
+    [RECEIVER]: { start: onCircle(CAP_CENTER, CAP_R, 0), segments: RECEIVER_SEGMENTS },
   },
+  // No enemy activity on the nominal mission: adversary platforms stay off the slide.
+  visibility: Object.fromEntries(hostileNodeIds().map((id) => [id, [{ tS: 0, visible: false }]])),
   cues: [
     {
       kind: "caption",
@@ -377,22 +401,7 @@ export const refuelOpTimeline: Timeline = {
       durationS: 6,
       text: "Refuel op · nominal mission profile (no threats)",
     },
-    { kind: "caption", tS: T.launch, durationS: 5, text: "Catapult launch · climb out" },
-    {
-      kind: "caption",
-      tS: T.rcvrId,
-      durationS: 6,
-      text: "Receiver detected · correlating ID and authorization",
-    },
-    {
-      kind: "caption",
-      tS: T.rcvrCoord,
-      durationS: 6,
-      text: `${rcvrLink.label} up · readiness exchange`,
-    },
-    { kind: "caption", tS: T.xfer, durationS: 8, text: "Contact · fuel transfer in progress" },
-    { kind: "caption", tS: T.separation, durationS: 6, text: "Disconnect · receiver separates" },
-    { kind: "caption", tS: T.postflight - 7, durationS: 7, text: "Recovery · arrested landing" },
+    ...CAPTIONS,
     ...statusCues(TANKER, tankerStatus),
     ...statusCues(RECEIVER, receiverStatus),
   ],
@@ -401,3 +410,34 @@ export const refuelOpTimeline: Timeline = {
 
 /** Exported for tests: when the receiver should sit in contact astern of the tanker. */
 export const REFUEL_OP_TIMES = T;
+
+/**
+ * The nominal profile as building blocks for attack storyboards (refuel-attack.ts). Read-only by
+ * convention: copy, never mutate.
+ */
+export const REFUEL_OP = {
+  T,
+  steps: STEPS as readonly MissionStep[],
+  tanker: { id: TANKER, start: DECK_SPOT, segments: TANKER_SEGMENTS as readonly MotionSegment[] },
+  receiver: {
+    id: RECEIVER,
+    start: onCircle(CAP_CENTER, CAP_R, 0),
+    segments: RECEIVER_SEGMENTS as readonly MotionSegment[],
+  },
+  captions: CAPTIONS as readonly Cue[],
+  tankerStatus: tankerStatus as readonly (readonly [number, string])[],
+  receiverStatus: receiverStatus as readonly (readonly [number, string])[],
+  geometry: {
+    DECK_SPOT,
+    DECK_Y,
+    LANE_Z,
+    ANCHOR,
+    ANCHOR_R,
+    ANCHOR_PERIOD_S,
+    RCVR_ORBIT_CENTER,
+    CONTACT_LAG,
+    CCW_TANGENT,
+    tankerAngle,
+    onCircle,
+  },
+} as const;
