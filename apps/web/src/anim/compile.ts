@@ -12,6 +12,7 @@ import type {
   ThreatKey,
   Timeline,
   Vec3,
+  VisibilityKey,
 } from "./types";
 import {
   add,
@@ -59,6 +60,7 @@ export interface CompiledTimeline {
   tracks: CompiledTrack[];
   links: [string, readonly LinkKey[]][];
   threats: [string, readonly ThreatKey[]][];
+  visibility: [string, readonly VisibilityKey[]][];
   /** Sorted by tS (stable). */
   cues: Cue[];
   /** As authored (validate.ts checks the order). */
@@ -264,6 +266,7 @@ export function compileTimeline(tl: Timeline): CompiledTimeline {
     tracks,
     links: Object.entries(tl.links ?? {}),
     threats: Object.entries(tl.threats ?? {}),
+    visibility: Object.entries(tl.visibility ?? {}),
     cues,
     steps: tl.steps ?? [],
     issues,

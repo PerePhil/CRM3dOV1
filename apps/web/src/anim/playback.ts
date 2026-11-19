@@ -28,6 +28,8 @@ export const RATES = [0.25, 0.5, 1, 2, 4] as const;
 export interface DiscreteState {
   links: ReadonlyMap<string, LinkState>;
   activeThreats: ReadonlySet<string>;
+  /** Hidden nodes (Frame.hidden). */
+  hidden: ReadonlySet<string>;
   captions: readonly string[];
   status: ReadonlyMap<string, string>;
   /** Active mission step index (Frame.stepIndex). */
@@ -71,8 +73,9 @@ export interface Playback {
 function discreteKey(f: Frame): string {
   const links = [...f.links].map(([k, v]) => `${k}=${v}`).join(",");
   const threats = [...f.activeThreats].join(",");
+  const hidden = [...f.hidden].join(",");
   const status = [...f.status].map(([k, v]) => `${k}=${v}`).join("\u0001");
-  return `${links}|${threats}|${f.captions.join("\u0001")}|${status}|${f.stepIndex}`;
+  return `${links}|${threats}|${hidden}|${f.captions.join("\u0001")}|${status}|${f.stepIndex}`;
 }
 
 export function createPlayback(initial: Timeline, opts: { autoplay?: boolean } = {}): Playback {
@@ -116,6 +119,7 @@ export function createPlayback(initial: Timeline, opts: { autoplay?: boolean } =
       discrete = {
         links: frame.links,
         activeThreats: frame.activeThreats,
+        hidden: frame.hidden,
         captions: frame.captions,
         status: frame.status,
         stepIndex: frame.stepIndex,

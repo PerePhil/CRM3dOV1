@@ -7,15 +7,22 @@ import type { Timeline } from "../types";
 import { idleTimeline } from "./idle";
 import { referenceTimeline } from "./reference";
 import { refuelOpTimeline } from "./refuel-op";
+import { s2Spoofing } from "./s2-spoofing";
+import { s3FalseTelemetry } from "./s3-false-telemetry";
+import { s4Malware } from "./s4-malware";
 
 /** Plays on load and whenever no scenario animation is selected. */
 export const IDLE_TIMELINE: Timeline = idleTimeline;
 
 /**
  * Scenario animations, keyed by catalog scenario ID (the key must equal the timeline's
- * `scenarioId`). Empty until scenario tasks land; see docs/animation/authoring.md.
+ * `scenarioId`). See docs/animation/authoring.md.
  */
-export const SCENARIO_TIMELINES: Readonly<Record<string, Timeline>> = {};
+export const SCENARIO_TIMELINES: Readonly<Record<string, Timeline>> = {
+  [s2Spoofing.scenarioId as string]: s2Spoofing,
+  [s3FalseTelemetry.scenarioId as string]: s3FalseTelemetry,
+  [s4Malware.scenarioId as string]: s4Malware,
+};
 
 /**
  * Baseline mission profiles (no threats): the written procedure the scenarios attack. Listed in

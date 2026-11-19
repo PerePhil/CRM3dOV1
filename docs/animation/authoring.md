@@ -92,6 +92,7 @@ label placeholder storyboards `(storyboard)` so nobody mistakes them for sim out
 | `actors?` | `{ [nodeId]: ActorTrack }` | Nodes without a track stay at home |
 | `links?` | `{ [linkId]: LinkKey[] }` | Sorted by `tS` |
 | `threats?` | `{ [threatId]: ThreatKey[] }` | Sorted by `tS` |
+| `visibility?` | `{ [nodeId]: VisibilityKey[] }` | Sorted by `tS`. Nodes without keys are always shown |
 | `cues?` | `Cue[]` | Any order. Sorted at compile time |
 
 ### Places
@@ -142,6 +143,7 @@ You never author angles except optional `arriveHeadingRad` / `headingRad`.
 |---|---|---|
 | `LinkKey` | `{ tS, state }` | From `tS` on, the link is in `state`. Before the first key it's the catalog `defaultState`. `state` must be in that link's `states` list. |
 | `ThreatKey` | `{ tS, active }` | From `tS` on, the threat is active or inactive. Before the first key it's inactive. |
+| `VisibilityKey` | `{ tS, visible }` | From `tS` on, the node (icon and callout) is drawn or hidden. Before the first key it's shown. Use it to keep an adversary off the slide until its attack is used. |
 
 ### Cues
 
@@ -162,15 +164,36 @@ list, highlights the active step, and seeks to a step when clicked.
 | `title` | Short name, e.g. "Fuel Transfer". |
 | `detail?` | One or two sentences from the procedure. |
 | `watch?` | Parameters or systems that matter during the step (risk-table rows). |
+| `kind?` | `"attack"` marks an adversary action injected into the procedure. Its `n` is the procedure step it follows. Rendered in hostile red. Needs a `scenarioId` and a threat track. Default `"procedure"`. |
 
 Steps narrate; they never move anything. Put the motion in `actors` and let the step boundaries
 match the segment boundaries (see `refuel-op.ts`, which keys both off one `T` table).
+
+### Attacks on the refuel op
+
+To storyboard an attack on the baseline mission, don't copy `refuel-op.ts`. Call
+`refuelAttackTimeline()` from `timelines/refuel-attack.ts` (see `s2-spoofing.ts`,
+`s3-false-telemetry.ts`, `s4-malware.ts`). You give it:
+
+- `attackAtS`: the nominal mission plays until here, then the red attack step starts. The cut must
+  land inside a `hold` / `orbit` or on a segment boundary of the nominal tracks (`fitSegments`
+  throws otherwise).
+- `attack`: the injected step's title, detail, and watch list (use parameter-table names).
+- `after`: nominal steps that still happen, by number, at their new start times.
+- `tanker` (and optionally `receiver`) segments from `attackAtS` on. An omitted receiver keeps
+  its nominal track.
+- `reveal`: adversary nodes that appear at `attackAtS`. Every other hostile node stays hidden.
+- `links` and `cues` for the attack and its consequence.
+
+The builder activates the scenario's threats at `attackAtS`, hides all hostile nodes before it,
+clips nominal captions and status there, and labels the result `(storyboard)`.
 
 ### Baseline missions vs. scenarios
 
 A mission with no threats (e.g. `refuel-op`) has no `scenarioId`. Register it in
 `MISSION_TIMELINES`, not `SCENARIO_TIMELINES`: it appears in the timeline picker and as a load
-button in the Mission Steps panel.
+button in the Mission Steps panel. A baseline mission shows no enemy activity, so it hides every
+hostile node (`hostileNodeIds()` from `roles.ts`) with a visibility key at `tS: 0`.
 
 Without `durationS`, a cue lasts to the end of the timeline. Write text in the briefing voice: short and
 factual, uppercase for status (`LOST-LINK · RTB`), sentence case for captions.

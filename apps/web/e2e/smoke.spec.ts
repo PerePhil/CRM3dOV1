@@ -78,3 +78,23 @@ test("refuel op: mission steps panel follows playback and seeks", async ({ page 
   await expect(page.getByTestId("mission-step-counter")).toHaveText("STEP 15 / 18");
   await page.screenshot({ path: "test-results/ov1-refuel-op.png" });
 });
+
+test("refuel op hides adversaries; an attack storyboard reveals one with a red step", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByTestId("mission-load-refuel-op").click();
+  await expect(page.getByTestId("callout-N-RCV")).toBeVisible();
+  await expect(page.getByTestId("callout-N-ADV-CYBER")).toHaveCount(0);
+  await expect(page.getByTestId("callout-N-ADV-SPOOF")).toHaveCount(0);
+
+  await page.getByTestId("scenario-S4").click();
+  await page.getByTestId("playback-toggle").click();
+  await expect(page.getByTestId("callout-N-ADV-CYBER")).toHaveCount(0);
+  await page.getByTestId("mission-step-attack").getByRole("button").click();
+  await expect(page.getByTestId("mission-step-counter")).toHaveText("ATTACK · AFTER STEP 14");
+  await expect(page.getByTestId("mission-step-attack")).toHaveAttribute("aria-current", "step");
+  await expect(page.getByTestId("callout-N-ADV-CYBER")).toBeVisible();
+  await expect(page.getByTestId("callout-N-ADV-JAM")).toHaveCount(0);
+  await page.screenshot({ path: "test-results/ov1-s4-attack.png" });
+});

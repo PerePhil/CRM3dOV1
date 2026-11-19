@@ -9,6 +9,8 @@ const btn =
  * Mission procedure for the playing timeline (Timeline.steps): the written steps, the active one
  * highlighted with its description and the parameters to watch. Clicking a step, or Prev / Next,
  * seeks the shared playback clock, so the scene, captions, and this list always agree.
+ * Attack steps (scenario storyboards) are adversary actions injected into the procedure, so they
+ * render in hostile red (SPEC §8: red means adversary, and only adversary).
  */
 export function MissionSteps() {
   // timelineId re-renders on load; the steps themselves are static data on the timeline.
@@ -67,7 +69,11 @@ export function MissionSteps() {
           data-testid="mission-step-counter"
           className="flex-1 text-center font-[family-name:var(--font-data)] text-[11px]"
         >
-          {active ? `STEP ${active.n} / ${steps.length}` : `— / ${steps.length}`}
+          {active
+            ? active.kind === "attack"
+              ? `ATTACK · AFTER STEP ${active.n}`
+              : `STEP ${active.n} / ${steps.length}`
+            : `— / ${steps.length}`}
         </span>
         <button
           type="button"
@@ -84,30 +90,47 @@ export function MissionSteps() {
         {steps.map((s, i) => {
           const isActive = i === stepIndex;
           const done = i < stepIndex;
+          const attack = s.kind === "attack";
+          const frame = attack
+            ? isActive
+              ? "border-hostile-strong bg-hostile/15"
+              : "border-transparent border-l-hostile-strong bg-hostile/10 hover:border-hostile-strong/40"
+            : isActive
+              ? "border-friendly-strong bg-paper"
+              : "border-transparent hover:border-rule/40";
           return (
             <li
-              key={s.n}
+              key={`${s.kind ?? "procedure"}-${s.n}`}
               ref={isActive ? activeRef : undefined}
-              data-testid={`mission-step-${s.n}`}
+              data-testid={attack ? "mission-step-attack" : `mission-step-${s.n}`}
+              data-kind={s.kind ?? "procedure"}
               aria-current={isActive ? "step" : undefined}
-              className={`border ${
-                isActive
-                  ? "border-friendly-strong bg-paper"
-                  : "border-transparent hover:border-rule/40"
-              }`}
-              style={isActive ? { borderLeftWidth: 4 } : undefined}
+              className={`border ${frame}`}
+              style={isActive || attack ? { borderLeftWidth: 4 } : undefined}
             >
               <button
                 type="button"
                 className="flex w-full items-baseline gap-1.5 px-1.5 py-0.5 text-left"
-                title={`Seek to step ${s.n} (T+${formatClock(s.tS)})`}
+                title={
+                  attack
+                    ? `Seek to the attack after step ${s.n} (T+${formatClock(s.tS)})`
+                    : `Seek to step ${s.n} (T+${formatClock(s.tS)})`
+                }
                 onClick={() => seekTo(i)}
               >
-                <span className="w-5 shrink-0 text-right font-[family-name:var(--font-data)] text-[10px] text-ink-muted">
-                  {s.n}
+                <span
+                  className={`w-5 shrink-0 text-right font-[family-name:var(--font-data)] text-[10px] ${
+                    attack ? "font-bold text-hostile-strong" : "text-ink-muted"
+                  }`}
+                >
+                  {attack ? "!" : s.n}
                 </span>
-                <span className={`flex-1 ${isActive ? "font-bold" : done ? "text-ink-muted" : ""}`}>
-                  {s.title}
+                <span
+                  className={`flex-1 ${attack ? "font-bold text-hostile-strong" : ""} ${
+                    isActive ? "font-bold" : done && !attack ? "text-ink-muted" : ""
+                  }`}
+                >
+                  {attack ? `ATTACK · ${s.title}` : s.title}
                 </span>
                 <span className="font-[family-name:var(--font-data)] text-[9px] text-ink-muted">
                   {done ? "✓" : formatClock(s.tS).slice(0, 5)}
@@ -125,7 +148,7 @@ export function MissionSteps() {
                     aria-valuenow={Math.round(progress * 100)}
                   >
                     <div
-                      className="h-full bg-friendly-strong"
+                      className={`h-full ${attack ? "bg-hostile-strong" : "bg-friendly-strong"}`}
                       style={{ width: `${progress * 100}%` }}
                     />
                   </div>

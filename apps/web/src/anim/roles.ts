@@ -37,3 +37,8 @@ export function scenarioTargets(scenarioOrId: Scenario | string): {
     nodes: catalog.nodes.filter((n) => nodes.has(n.id)).map((n) => n.id),
   };
 }
+
+/** IDs of every hostile-affiliation node (adversary platforms), in catalog order. */
+export function hostileNodeIds(): string[] {
+  return catalog.nodes.filter((n) => n.affiliation === "hostile").map((n) => n.id);
+}

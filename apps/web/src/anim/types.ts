@@ -86,6 +86,16 @@ export interface ThreatKey {
 }
 
 /**
+ * Node shown or hidden from tS onward (until the next key). Before the first key: shown.
+ * Use it to keep an actor off the slide until it takes part, e.g. an adversary that only appears
+ * when its attack is used.
+ */
+export interface VisibilityKey {
+  tS: number;
+  visible: boolean;
+}
+
+/**
  * Text cues. `caption` is a viewport annotation; `status` is a second line on a node's callout.
  * Without durationS a cue lasts until the end of the timeline.
  */
@@ -108,6 +118,11 @@ export interface MissionStep {
   detail?: string;
   /** Parameters or systems that matter during this step (rows of the mission risk table). */
   watch?: readonly string[];
+  /**
+   * `"attack"`: an adversary action injected into the procedure (not part of the source doc).
+   * Its `n` is the procedure step it follows. Rendered in hostile red. Default `"procedure"`.
+   */
+  kind?: "procedure" | "attack";
 }
 
 export interface Timeline {
@@ -126,6 +141,8 @@ export interface Timeline {
   links?: Readonly<Record<string, readonly LinkKey[]>>;
   /** Keyed by catalog threat ID. Keys sorted by tS. */
   threats?: Readonly<Record<string, readonly ThreatKey[]>>;
+  /** Keyed by catalog node ID. Keys sorted by tS. Nodes without keys are always shown. */
+  visibility?: Readonly<Record<string, readonly VisibilityKey[]>>;
   cues?: readonly Cue[];
   /** Mission procedure steps, sorted by tS with strictly increasing times. */
   steps?: readonly MissionStep[];
@@ -151,6 +168,8 @@ export interface Frame {
   /** Only links with keys that have fired. Otherwise the catalog default: use linkStateOf(). */
   links: ReadonlyMap<string, LinkState>;
   activeThreats: ReadonlySet<string>;
+  /** Nodes hidden at this instant (visibility channel). Everything else is drawn. */
+  hidden: ReadonlySet<string>;
   /** Active captions, oldest first. */
   captions: readonly string[];
   /** Active status line per node (latest cue wins). */

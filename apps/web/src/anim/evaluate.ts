@@ -113,6 +113,12 @@ export function evaluate(ct: CompiledTimeline, tS: number): Frame {
     if (keyAt(keys, t)?.active) activeThreats.add(id);
   }
 
+  const hidden = new Set<string>();
+  for (const [id, keys] of ct.visibility) {
+    const k = keyAt(keys, t);
+    if (k && !k.visible) hidden.add(id);
+  }
+
   const captions: string[] = [];
   const status = new Map<string, string>();
   for (const cue of ct.cues) {
@@ -127,5 +133,5 @@ export function evaluate(ct: CompiledTimeline, tS: number): Frame {
     if (s.tS <= t) stepIndex = i;
   });
 
-  return { tS: t, actors, links, activeThreats, captions, status, stepIndex };
+  return { tS: t, actors, links, activeThreats, hidden, captions, status, stepIndex };
 }

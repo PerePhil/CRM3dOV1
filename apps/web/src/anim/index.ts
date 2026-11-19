@@ -15,7 +15,7 @@ export {
   RATES,
 } from "./playback";
 export { AnimationDriver, useActorTransform, usePlayback } from "./react";
-export { linkIdsTouching, nodeIdOfKind, scenarioTargets } from "./roles";
+export { hostileNodeIds, linkIdsTouching, nodeIdOfKind, scenarioTargets } from "./roles";
 export { homePosition, linkStateOf, livePosition, resolvePlace } from "./space";
 export {
   availableTimelines,
