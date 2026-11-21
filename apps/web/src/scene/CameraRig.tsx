@@ -9,8 +9,23 @@ import { SLIDE_CAMERA } from "./layout";
 export const CHASE_DISTANCE = 22;
 /** Camera elevation above the UAV's horizon when a follow mode starts, radians (~32°). */
 export const CHASE_ELEVATION_RAD = 0.55;
-/** Orbit mode turn rate, rad/s: one lap per minute, slow enough to read callouts while it turns. */
+/**
+ * Orbit mode turn rate, radians per second of PLAYBACK time: one lap per mission minute at 1×,
+ * slow enough to read callouts while it turns. Driven by the playback clock (AGENTS.md §6.1), so
+ * pause and end freeze it and the speed control scales it.
+ */
 export const ORBIT_RATE_RAD_S = (2 * Math.PI) / 60;
+/** A playback step larger than this (seek, load, loop wrap) doesn't turn the orbit. */
+const ORBIT_MAX_STEP_S = 0.5;
+
+/**
+ * How far orbit mode turns between two playback times, radians. Only forward playback within
+ * one normal tick counts; pauses, seeks, and wraps turn nothing.
+ */
+export function orbitStepRad(prevTS: number, tS: number): number {
+  const d = tS - prevTS;
+  return d > 0 && d <= ORBIT_MAX_STEP_S ? ORBIT_RATE_RAD_S * d : 0;
+}
 /** Ease time for entering a follow mode or resetting to the slide view, seconds. */
 export const TRANSITION_S = 1.4;
 
@@ -31,7 +46,7 @@ const smoothstep = (x: number) => {
  *
  * Follow modes translate camera and orbit target together, so the user can still drag to change
  * the angle or scroll to zoom mid-flight and the rig keeps that framing. Orbit adds a slow turn
- * about the vertical axis. Mode changes and "reset view" ease over TRANSITION_S, so the room never
+ * about the vertical axis, advanced by the playback clock rather than render time. Mode changes and "reset view" ease over TRANSITION_S, so the room never
  * sees a hard cut. Runs at FRAME_PRIORITY.CAMERA: after OrbitControls.update, before the
  * callouts project themselves.
  */
@@ -47,6 +62,7 @@ export function CameraRig() {
     tmpA: new Vector3(),
     tmpB: new Vector3(),
     off: new Vector3(),
+    lastTS: Number.NaN,
   });
 
   useFrame((_, dtS) => {
@@ -68,7 +84,10 @@ export function CameraRig() {
       if (s.mode !== "free" && !wasFollowing) startTransition("chase");
     }
 
-    const p = livePosition(playback.frame, uavId);
+    const frame = playback.frame;
+    const orbitRad = orbitStepRad(s.lastTS, frame.tS);
+    s.lastTS = frame.tS;
+    const p = livePosition(frame, uavId);
     const uav = s.tmpA.set(p[0], p[1], p[2]);
 
     if (s.tr) {
@@ -102,7 +121,7 @@ export function CameraRig() {
       camera.position.add(delta);
       if (s.mode === "orbit") {
         s.off.copy(camera.position).sub(controls.target);
-        s.off.applyAxisAngle(UP, ORBIT_RATE_RAD_S * dtS);
+        s.off.applyAxisAngle(UP, orbitRad);
         camera.position.copy(controls.target).add(s.off);
       }
     } else {
