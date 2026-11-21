@@ -6,7 +6,7 @@ export function Disclaimer() {
   return (
     <footer
       data-testid="disclaimer"
-      className="bg-paper px-3 py-0.5 text-center text-[10px] text-ink-muted"
+      className="bg-paper px-3 py-0.5 text-center text-xs text-ink-muted"
     >
       {DISCLAIMER_TEXT}
     </footer>
