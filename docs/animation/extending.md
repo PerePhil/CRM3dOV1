@@ -27,12 +27,20 @@ export function FollowsUav({ uavId }: { uavId: string }) {
 ```
 
 - `<AnimationDriver/>` (mounted once in `Ov1Scene`) ticks the clock at `useFrame` priority **−1**, so
-  every default-priority `useFrame` sees the current frame. Don't use positive priorities: in R3F they
-  take over rendering.
+  every later `useFrame` sees the current frame. Don't use positive priorities: in R3F they take over
+  rendering. The clock is fed a moving average of the frame delta (`createDeltaSmoother`), which
+  removes rAF wobble without changing playback speed.
+- **Priority order** (`FRAME_PRIORITY` in `anim/react.tsx`): `CLOCK` (−1) → `CAMERA` (−0.75, the
+  presentation camera rig) → `ACTORS` (−0.5, node and link transforms) → 0 (drei `<Html>` callouts
+  project themselves). Anything that moves a group carrying an `<Html>` child must run at `ACTORS`:
+  React registers the child's `useFrame` first, so at equal priority the callout is projected from the
+  previous frame's position and visibly jitters against its mesh.
 - **Never** `setState` per frame, and never put `playback.frame` in React state or context.
 - For a whole node (platform icon + callout), use `useActorTransform(nodeId)`. It returns
   `{ root, attitude }`: position goes on `root`, heading/pitch/bank on `attitude`. Put DOM callouts
   under `root` so they follow the node without rolling (see `scene/platforms.tsx`).
+  Position is exact; attitude eases toward the evaluated pose at `ATTITUDE_RATE` so bank and heading
+  don't snap where two motion segments meet (it snaps instead on a seek or load).
 
 ### Discrete things (text, states, toggles): `usePlayback(selector)`
 

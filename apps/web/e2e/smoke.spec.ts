@@ -98,3 +98,39 @@ test("refuel op hides adversaries; an attack storyboard reveals one with a red s
   await expect(page.getByTestId("callout-N-ADV-JAM")).toHaveCount(0);
   await page.screenshot({ path: "test-results/ov1-s2-malware-attack.png" });
 });
+
+test("presenter controls: camera track, text size, collapsible panel", async ({ page }) => {
+  await page.goto("/");
+  const uav = page.getByTestId("callout-N-UAV");
+  await expect(uav).toBeVisible();
+
+  // Text size scales the root font, so every rem-sized label grows.
+  const before = await uav.boundingBox();
+  await page.getByTestId("text-larger").click();
+  await expect
+    .poll(async () => (await uav.boundingBox())?.height ?? 0)
+    .toBeGreaterThan(before?.height ?? 0);
+
+  // Track mode: after the ease-in, the UAV callout sits near the middle of the viewport.
+  await page.getByTestId("camera-track").click();
+  await expect(page.getByTestId("camera-track")).toHaveAttribute("aria-pressed", "true");
+  const canvas = await page.locator("canvas").boundingBox();
+  await expect
+    .poll(async () => {
+      const b = await uav.boundingBox();
+      if (!b || !canvas) return Number.POSITIVE_INFINITY;
+      return Math.abs(b.x + b.width / 2 - (canvas.x + canvas.width / 2));
+    })
+    .toBeLessThan(80);
+  await page.keyboard.press("r");
+  await expect(page.getByTestId("camera-track")).toHaveAttribute("aria-pressed", "false");
+
+  // Sections collapse; the panel hides and comes back.
+  const steps = page.getByTestId("section-mission-steps").getByRole("button").first();
+  await steps.click();
+  await expect(steps).toHaveAttribute("aria-expanded", "false");
+  await page.keyboard.press("p");
+  await expect(page.getByTestId("sidebar")).toHaveCount(0);
+  await page.getByTestId("sidebar-toggle").click();
+  await expect(page.getByTestId("sidebar")).toBeVisible();
+});

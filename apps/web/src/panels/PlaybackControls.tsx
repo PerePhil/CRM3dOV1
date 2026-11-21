@@ -9,9 +9,9 @@ export function formatClock(tS: number): string {
 }
 
 const btn =
-  "border border-rule bg-paper px-2 py-0.5 text-xs font-bold uppercase hover:bg-paper-alt focus-visible:outline-2 focus-visible:outline-friendly-strong";
+  "border border-rule bg-paper px-3 py-1 text-sm font-bold uppercase hover:bg-paper-alt focus-visible:outline-2 focus-visible:outline-friendly-strong";
 
-/** Play / pause / restart / scrub / speed / timeline picker (SPEC §7, left panel). */
+/** Play / pause / restart / scrub / speed / timeline picker (SPEC §7), pinned atop the side panel. */
 export function PlaybackControls() {
   const timelineId = usePlayback((s) => s.timelineId);
   const label = usePlayback((s) => s.label);
@@ -24,18 +24,12 @@ export function PlaybackControls() {
   const options = availableTimelines(import.meta.env.DEV);
 
   return (
-    <section
-      data-testid="playback"
-      aria-label="Playback"
-      className="mt-3 border-t border-rule pt-2"
-    >
-      <h3 className="mb-1 text-[10px] font-bold uppercase tracking-wider">Playback</h3>
-
-      <label className="mb-1.5 block text-[10px] uppercase text-ink-muted">
+    <section data-testid="playback" aria-label="Playback">
+      <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-ink-muted">
         Timeline
         <select
           data-testid="playback-timeline"
-          className="mt-0.5 block w-full border border-rule bg-paper px-1 py-0.5 text-xs text-ink"
+          className="mt-0.5 block w-full border border-rule bg-paper px-1.5 py-1 text-sm font-normal normal-case tracking-normal text-ink"
           value={timelineId}
           onChange={(e) => {
             const next = options.find((t) => t.id === e.target.value);
@@ -50,12 +44,13 @@ export function PlaybackControls() {
         </select>
       </label>
 
-      <div className="mb-1.5 flex items-center gap-1">
+      <div className="mb-2 flex items-center gap-1.5">
         <button
           type="button"
           data-testid="playback-toggle"
           className={btn}
           aria-pressed={playing}
+          title="Play / pause (Space)"
           onClick={() => playback.toggle()}
         >
           {playing ? "Pause" : ended ? "Replay" : "Play"}
@@ -63,11 +58,11 @@ export function PlaybackControls() {
         <button type="button" className={btn} onClick={() => playback.restart()}>
           Restart
         </button>
-        <label className="ml-auto flex items-center gap-1 text-[10px] uppercase text-ink-muted">
+        <label className="ml-auto flex items-center gap-1.5 text-xs font-bold uppercase text-ink-muted">
           Speed
           <select
             data-testid="playback-rate"
-            className="border border-rule bg-paper px-0.5 py-0.5 font-[family-name:var(--font-data)] text-xs text-ink"
+            className="border border-rule bg-paper px-1 py-1 font-[family-name:var(--font-data)] text-sm text-ink"
             value={rate}
             onChange={(e) => playback.setRate(Number(e.target.value))}
           >
@@ -84,7 +79,7 @@ export function PlaybackControls() {
         data-testid="playback-scrub"
         aria-label={`Scrub ${label}`}
         type="range"
-        className="w-full accent-friendly-strong"
+        className="h-5 w-full accent-friendly-strong"
         min={0}
         max={durationS}
         step={0.1}
@@ -93,7 +88,7 @@ export function PlaybackControls() {
       />
       <div
         data-testid="playback-clock"
-        className="flex justify-between font-[family-name:var(--font-data)] text-[11px]"
+        className="flex justify-between font-[family-name:var(--font-data)] text-base"
       >
         <span>T+{formatClock(tS)}</span>
         <span className="text-ink-muted">

@@ -26,7 +26,7 @@ Read [README.md](README.md) first, especially **Rule 1** (what a hand-authored t
    Scenario timelines are **builders** `(scenarioId) => Timeline`: the registry key is the only
    place a scenario ID is written out, and `registry.test.ts` fails if any other timeline file
    names one. The key must equal every built timeline's `scenarioId` (also tested). That enables
-   the scenario's button in the left panel and adds it to the timeline picker. A scenario with
+   the scenario's button in the side panel's Scenario section and adds it to the timeline picker. A scenario with
    several threats can list several timelines; give each a distinct `variant` (e.g. S2's
    "False telemetry" and "Flight-computer malware") and they appear as sub-buttons.
 6. **Check it:**
@@ -214,7 +214,7 @@ factual, uppercase for status (`LOST-LINK · RTB`), sentence case for captions.
 
 ## Previewing and debugging
 
-- **Timeline picker** (left panel, Playback): every registered timeline. In dev builds it also lists
+- **Timeline picker** (side panel, Playback): every registered timeline. In dev builds it also lists
   `REFERENCE`, which demos every primitive.
 - **Scrub** to any time. `evaluate` is pure, so scrubbing backward is exact.
 - **Speed** 0.25×–4× for checking fast transitions.

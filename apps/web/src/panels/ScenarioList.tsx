@@ -12,7 +12,7 @@ export function ScenarioList() {
   const playingScenario = usePlayback((s) => s.scenarioId);
   const playingId = usePlayback((s) => s.timelineId);
   return (
-    <ul data-testid="scenario-list" className="space-y-1 text-sm">
+    <ul data-testid="scenario-list" className="space-y-1.5 text-base">
       {catalog.scenarios.map((s) => {
         const tls = timelinesForScenario(s.id);
         const first = tls[0];
@@ -26,18 +26,18 @@ export function ScenarioList() {
               aria-pressed={active}
               title={first ? `Play ${first.label}` : "No animation authored yet (docs/animation)"}
               onClick={() => playback.load(active || !first ? IDLE_TIMELINE : first)}
-              className={`flex w-full items-baseline gap-1 border px-2 py-1 text-left ${
+              className={`flex w-full items-baseline gap-2 border px-2.5 py-1.5 text-left leading-snug ${
                 active ? "border-friendly-strong bg-friendly/30" : "border-rule bg-paper"
               } enabled:hover:bg-paper-alt disabled:cursor-not-allowed`}
             >
               <span className="font-bold">{s.id}</span>
               <span className="flex-1">{s.name}</span>
-              <span className="text-[9px] font-bold uppercase text-ink-muted">
+              <span className="text-xs font-bold uppercase text-ink-muted">
                 {first ? (active ? "■" : "▶") : "—"}
               </span>
             </button>
             {tls.length > 1 ? (
-              <ul className="mt-0.5 space-y-0.5 pl-4">
+              <ul className="mt-1 space-y-1 pl-5">
                 {tls.map((tl) => {
                   const on = playingId === tl.id;
                   return (
@@ -48,12 +48,12 @@ export function ScenarioList() {
                         aria-pressed={on}
                         title={`Play ${tl.label}`}
                         onClick={() => playback.load(on ? IDLE_TIMELINE : tl)}
-                        className={`flex w-full items-baseline gap-1 border px-2 py-0.5 text-left text-xs ${
+                        className={`flex w-full items-baseline gap-2 border px-2.5 py-1 text-left text-sm ${
                           on ? "border-friendly-strong bg-friendly/30" : "border-rule/50 bg-paper"
                         } hover:bg-paper-alt`}
                       >
                         <span className="flex-1">{tl.variant ?? tl.label}</span>
-                        <span className="text-[9px] font-bold uppercase text-ink-muted">
+                        <span className="text-xs font-bold uppercase text-ink-muted">
                           {on ? "■" : "▶"}
                         </span>
                       </button>

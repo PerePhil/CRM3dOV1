@@ -5,6 +5,7 @@
 
 export { type CompiledTimeline, compileTimeline } from "./compile";
 export { evaluate, localTime, poseAt, positionAt } from "./evaluate";
+export { type Focus, timelineFocus } from "./focus";
 export { type SimRunInput, type SimSample, timelineFromSim } from "./fromSim";
 export { playback } from "./instance";
 export {
@@ -14,7 +15,14 @@ export {
   type PlaybackSnapshot,
   RATES,
 } from "./playback";
-export { AnimationDriver, useActorTransform, usePlayback } from "./react";
+export {
+  AnimationDriver,
+  ATTITUDE_RATE,
+  createDeltaSmoother,
+  FRAME_PRIORITY,
+  useActorTransform,
+  usePlayback,
+} from "./react";
 export { hostileNodeIds, linkIdsTouching, nodeIdOfKind, scenarioTargets } from "./roles";
 export { homePosition, linkStateOf, livePosition, resolvePlace } from "./space";
 export {
