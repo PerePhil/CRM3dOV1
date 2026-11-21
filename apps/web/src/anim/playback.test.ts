@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createPlayback, MAX_TICK_S } from "./playback";
+import { createPlayback, MAX_TICK_S, RATES } from "./playback";
 import { nodeIdOfKind } from "./roles";
 import type { Timeline } from "./types";
 
@@ -118,5 +118,19 @@ describe("playback controller", () => {
     off();
     p.pause();
     expect(listener).not.toHaveBeenCalled();
+  });
+});
+
+describe("RATES", () => {
+  it("offers 1.5× between 1× and 2×, ascending", () => {
+    expect(RATES).toContain(1.5);
+    expect([...RATES]).toEqual([...RATES].sort((a, b) => a - b));
+  });
+
+  it("advances 1.5 s of timeline per wall-clock second at 1.5×", () => {
+    const pb = createPlayback({ id: "t", label: "t", durationS: 10, loop: false });
+    pb.setRate(1.5);
+    for (let i = 0; i < 10; i++) pb.tick(0.1);
+    expect(pb.frame.tS).toBeCloseTo(1.5);
   });
 });

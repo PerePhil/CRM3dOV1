@@ -23,7 +23,7 @@ import type { Frame, Timeline } from "./types";
 export const MAX_TICK_S = 0.1;
 /** Snapshot time resolution: how often time-only changes reach React. */
 export const SNAPSHOT_RESOLUTION_S = 0.1;
-export const RATES = [0.25, 0.5, 1, 2, 4] as const;
+export const RATES = [0.25, 0.5, 1, 1.5, 2, 4] as const;
 
 export interface DiscreteState {
   links: ReadonlyMap<string, LinkState>;
