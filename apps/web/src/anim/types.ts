@@ -133,8 +133,8 @@ export interface Timeline {
   /** The catalog scenario this animates, if any. */
   scenarioId?: string;
   /**
-   * Short name of this animation when a scenario has several (e.g. S2's "False telemetry" and
-   * "Flight-computer malware"). Shown as a sub-button under the scenario.
+   * Short name of this animation when a scenario has several (e.g. one per threat of S2:
+   * "Flight-computer malware", "False telemetry"). Shown as a sub-button under the scenario.
    */
   variant?: string;
   durationS: number;

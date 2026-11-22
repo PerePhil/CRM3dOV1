@@ -88,7 +88,7 @@ test("refuel op hides adversaries; an attack storyboard reveals one with a red s
   await expect(page.getByTestId("callout-N-ADV-CYBER")).toHaveCount(0);
   await expect(page.getByTestId("callout-N-ADV-SPOOF")).toHaveCount(0);
 
-  await page.getByTestId("scenario-variant-s2-malware").click();
+  await page.getByTestId("scenario-S2").click();
   await page.getByTestId("playback-toggle").click();
   await expect(page.getByTestId("callout-N-ADV-CYBER")).toHaveCount(0);
   await page.getByTestId("mission-step-attack").getByRole("button").click();
