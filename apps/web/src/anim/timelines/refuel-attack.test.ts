@@ -3,15 +3,15 @@ import { describe, expect, it } from "vitest";
 import { SCENERY } from "../../scene/layout";
 import { compileTimeline } from "../compile";
 import { evaluate } from "../evaluate";
-import { hostileNodeIds, nodeIdOfKind } from "../roles";
+import { hostileNodeIds, nodeIdOfKind, scenarioTargets } from "../roles";
 import type { MotionSegment, Timeline, Vec3 } from "../types";
 import { distance } from "../vec";
-import { clipCues, fitSegments } from "./refuel-attack";
+import { clipCues, fitSegments, linksLostWith } from "./refuel-attack";
 import { REFUEL_OP, refuelOpTimeline } from "./refuel-op";
 import { availableTimelines } from "./registry";
 import { S1_TIMES } from "./s1-gps-spoofing";
-import { S2_FDI_TIMES } from "./s2-false-telemetry";
 import { S2_MALWARE_TIMES } from "./s2-malware";
+import { S3_TIMES } from "./s3-jamming";
 
 /** Storyboards as the registry builds them (it alone binds scenario IDs). */
 const registered = (id: string): Timeline => {
@@ -20,8 +20,8 @@ const registered = (id: string): Timeline => {
   return tl;
 };
 const s1GpsSpoofing = registered("s1-gps-spoofing");
-const s2FalseTelemetry = registered("s2-false-telemetry");
 const s2Malware = registered("s2-malware");
+const s3Jamming = registered("s3-jamming");
 
 const TANKER = nodeIdOfKind("uav");
 const RECEIVER = nodeIdOfKind("receiver");
@@ -49,20 +49,20 @@ const cases = [
     reveal: nodeIdOfKind("adversary-spoofer"),
   },
   {
-    tl: s2FalseTelemetry,
-    attackAt: S2_FDI_TIMES.OFF_BOW,
-    divergeAt: S2_FDI_TIMES.LAUNCH,
-    after: 8,
-    next: undefined,
-    reveal: nodeIdOfKind("adversary-cyber"),
-  },
-  {
     tl: s2Malware,
     attackAt: S2_MALWARE_TIMES.TRIGGER,
     divergeAt: S2_MALWARE_TIMES.TRIGGER,
     after: 14,
     next: undefined,
     reveal: nodeIdOfKind("adversary-cyber"),
+  },
+  {
+    tl: s3Jamming,
+    attackAt: S3_TIMES.OFF_BOW,
+    divergeAt: S3_TIMES.LAUNCH,
+    after: 8,
+    next: undefined,
+    reveal: nodeIdOfKind("adversary-jammer"),
   },
 ] as const;
 
@@ -124,41 +124,6 @@ describe.each(cases)("$tl.id", ({ tl, attackAt, divergeAt, after, next, reveal }
   });
 });
 
-describe("S2 animations", () => {
-  it("S2's two animations cover both of its threats", () => {
-    const used = [s2FalseTelemetry, s2Malware].flatMap((tl) => Object.keys(tl.threats ?? {}));
-    expect(s2Malware.scenarioId).toBe(s2FalseTelemetry.scenarioId);
-    expect(new Set(used)).toEqual(
-      new Set(catalog.scenarios.find((s) => s.id === s2Malware.scenarioId)?.threats),
-    );
-  });
-});
-
-describe("S2 false telemetry: under-speed launch into the ocean", () => {
-  const pos = posIn(s2FalseTelemetry);
-  const deck = REFUEL_OP.geometry.DECK_SPOT;
-
-  it("launches on time in step 8, then never climbs", () => {
-    expect(distance(pos(TANKER, S2_FDI_TIMES.LAUNCH - 0.01), deck)).toBeLessThan(1e-6);
-    for (let t = S2_FDI_TIMES.LAUNCH; t <= S2_FDI_TIMES.END; t += 0.25) {
-      expect(pos(TANKER, t)[1]).toBeLessThanOrEqual(deck[1] + 1e-6);
-    }
-  });
-
-  it("the attack step interrupts step 8 (Launch and Initial Flight)", () => {
-    const steps = s2FalseTelemetry.steps ?? [];
-    expect(steps.at(-2)?.title).toBe("Launch and Initial Flight");
-    expect(steps.at(-1)?.kind).toBe("attack");
-  });
-
-  it("ends in the water just off the bow", () => {
-    const end = pos(TANKER, S2_FDI_TIMES.END);
-    expect(end[1]).toBeLessThan(0);
-    expect(end[0]).toBeGreaterThan(SCENERY.carrier.position[0] + SCENERY.carrier.size[0] / 2);
-    expect(distance(end, deck)).toBeLessThan(6);
-  });
-});
-
 describe("S2 malware: tanker flies into the receiver", () => {
   const pos = posIn(s2Malware);
 
@@ -171,6 +136,43 @@ describe("S2 malware: tanker flies into the receiver", () => {
   it("both airframes end in the water", () => {
     expect(pos(TANKER, S2_MALWARE_TIMES.END)[1]).toBeLessThan(0);
     expect(pos(RECEIVER, S2_MALWARE_TIMES.END)[1]).toBeLessThan(0);
+  });
+});
+
+describe("S3 jamming: C2 uplinks denied at launch, ditches off the bow", () => {
+  const pos = posIn(s3Jamming);
+  const deck = REFUEL_OP.geometry.DECK_SPOT;
+
+  it("launches on time in step 8, then never climbs", () => {
+    expect(distance(pos(TANKER, S3_TIMES.LAUNCH - 0.01), deck)).toBeLessThan(1e-6);
+    for (let t = S3_TIMES.LAUNCH; t <= S3_TIMES.END; t += 0.25) {
+      expect(pos(TANKER, t)[1]).toBeLessThanOrEqual(deck[1] + 1e-6);
+    }
+  });
+
+  it("the attack step interrupts step 8 (Launch and Initial Flight)", () => {
+    const steps = s3Jamming.steps ?? [];
+    expect(steps.at(-2)?.title).toBe("Launch and Initial Flight");
+    expect(steps.at(-1)?.kind).toBe("attack");
+  });
+
+  it("denies only the scenario's jammed links at the attack; the rest go dark at the ditch", () => {
+    const ct = compileTimeline(s3Jamming);
+    const jammed = new Set(scenarioTargets(s3Jamming.scenarioId ?? "").links);
+    const atAttack = evaluate(ct, S3_TIMES.OFF_BOW + 0.1).links;
+    expect(jammed.size).toBeGreaterThan(0);
+    for (const id of jammed) expect(atAttack.get(id)).toBe("denied");
+    for (const id of linksLostWith(TANKER)) {
+      if (!jammed.has(id)) expect(atAttack.get(id), id).toBeUndefined();
+      expect(evaluate(ct, S3_TIMES.END).links.get(id), id).toBe("denied");
+    }
+  });
+
+  it("ends in the water just off the bow", () => {
+    const end = pos(TANKER, S3_TIMES.END);
+    expect(end[1]).toBeLessThan(0);
+    expect(end[0]).toBeGreaterThan(SCENERY.carrier.position[0] + SCENERY.carrier.size[0] / 2);
+    expect(distance(end, deck)).toBeLessThan(6);
   });
 });
 

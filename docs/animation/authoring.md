@@ -28,7 +28,7 @@ Read [README.md](README.md) first, especially **Rule 1** (what a hand-authored t
    names one. The key must equal every built timeline's `scenarioId` (also tested). That enables
    the scenario's button in the side panel's Scenario section and adds it to the timeline picker. A scenario with
    several threats can list several timelines; give each a distinct `variant` (e.g. S2's
-   "False telemetry" and "Flight-computer malware") and they appear as sub-buttons.
+   "Flight-computer malware" plus a future "False telemetry") and they appear as sub-buttons.
 6. **Check it:**
    ```bash
    pnpm --filter @ov1/web test     # registry.test.ts validates your timeline against the catalog
@@ -181,11 +181,11 @@ match the segment boundaries (see `refuel-op.ts`, which keys both off one `T` ta
 
 To storyboard an attack on the baseline mission, don't copy `refuel-op.ts`. Call
 `refuelAttackTimeline()` from `timelines/refuel-attack.ts` (see `s1-gps-spoofing.ts`,
-`s2-false-telemetry.ts`, `s2-malware.ts`). You give it:
+`s2-malware.ts`, `s3-jamming.ts`). You give it:
 
 - `attackAtS`: the nominal mission plays until here, then the red attack step starts.
 - `divergeAtS` (optional, ≤ `attackAtS`): where motion leaves the nominal profile when the attack
-  shapes the step it interrupts (S2 false telemetry diverges at launch, attacks off the bow). The
+  shapes the step it interrupts (S3 jamming diverges at launch, attacks off the bow). The
   cut must land inside a `hold` / `orbit` or on a segment boundary (`fitSegments` throws otherwise).
 - `variant` and `threats` when the scenario has several threats: name this animation and say
   which threat it uses. Pick the threat with `scenarioThreatByLinkState()`, not a literal ID.

@@ -49,7 +49,7 @@ flowchart LR
 | `anim/timelines/registry.ts` | **The one wiring point.** `IDLE_TIMELINE`, `MISSION_TIMELINES`, `SCENARIO_TIMELINES` (one or more per scenario), `DEV_TIMELINES`. |
 | `anim/timelines/refuel-op.ts` | Baseline mission: the 18-step refuel op (tanker + receiver formation), with `steps`. Adversaries hidden. Exports `REFUEL_OP` building blocks. |
 | `anim/timelines/refuel-attack.ts` | `refuelAttackTimeline()`: replays the refuel op up to an attack, injects a red `attack` step, reveals the adversary, plays the consequence. |
-| `anim/timelines/s1-gps-spoofing.ts`, `s2-false-telemetry.ts`, `s2-malware.ts` | Attack storyboards on the refuel op, per the mission analysis doc: S1 lands in hostile territory; S2's two variants ditch an under-speed launch and fly into the receiver. |
+| `anim/timelines/s1-gps-spoofing.ts`, `s2-malware.ts`, `s3-jamming.ts` | Attack storyboards on the refuel op, per the mission analysis doc: S1 lands in hostile territory; S2's malware flies the tanker into the receiver; S3's jamming denies C2 at launch and the tanker ditches off the bow. |
 | `anim/timelines/idle.ts` | The default timeline: the UAV flies a holding orbit, "LOITER · AWAITING TASKING". |
 | `anim/timelines/reference.ts` | Dev-only demo that exercises every primitive and channel. Copy its patterns. |
 | `panels/PlaybackControls.tsx` | Timeline picker, play/pause, restart, speed, scrubber, `T+mm:ss.s` clock. |

@@ -4,7 +4,7 @@ import { IDLE_TIMELINE, playback, timelinesForScenario, usePlayback } from "../a
 /**
  * Scenario preset picker (SPEC §7). Clicking a scenario plays its first registered animation
  * (anim/timelines/registry.ts); clicking it again returns to idle. A scenario with several
- * animations (e.g. S2: false telemetry, flight-computer malware) lists each as a sub-button.
+ * animations (e.g. one per threat of a multi-threat scenario) lists each as a sub-button.
  * Scenarios without an animation yet are disabled. The app-store task will move "selected
  * scenario" into the shared store; playback loading stays the same.
  */

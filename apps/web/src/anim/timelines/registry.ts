@@ -8,8 +8,8 @@ import { idleTimeline } from "./idle";
 import { referenceTimeline } from "./reference";
 import { refuelOpTimeline } from "./refuel-op";
 import { gpsSpoofingStoryboard } from "./s1-gps-spoofing";
-import { falseTelemetryStoryboard } from "./s2-false-telemetry";
 import { malwareStoryboard } from "./s2-malware";
+import { jammingStoryboard } from "./s3-jamming";
 
 /** Plays on load and whenever no scenario animation is selected. */
 export const IDLE_TIMELINE: Timeline = idleTimeline;
@@ -29,7 +29,8 @@ const byScenario = (
 
 export const SCENARIO_TIMELINES: Readonly<Record<string, readonly Timeline[]>> = {
   S1: byScenario("S1", [gpsSpoofingStoryboard]),
-  S2: byScenario("S2", [falseTelemetryStoryboard, malwareStoryboard]),
+  S2: byScenario("S2", [malwareStoryboard]),
+  S3: byScenario("S3", [jammingStoryboard]),
 };
 
 /**
