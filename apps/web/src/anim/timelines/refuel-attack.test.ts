@@ -58,7 +58,7 @@ const cases = [
   },
   {
     tl: s3Jamming,
-    attackAt: S3_TIMES.OFF_BOW,
+    attackAt: S3_TIMES.JAM,
     divergeAt: S3_TIMES.LAUNCH,
     after: 8,
     next: undefined,
@@ -156,10 +156,18 @@ describe("S3 jamming: C2 uplinks denied at launch, ditches off the bow", () => {
     expect(steps.at(-1)?.kind).toBe("attack");
   });
 
+  it("jams during the catapult stroke, before the tanker leaves the bow", () => {
+    const ct = compileTimeline(s3Jamming);
+    expect(S3_TIMES.JAM).toBeGreaterThan(S3_TIMES.LAUNCH);
+    expect(S3_TIMES.JAM - S3_TIMES.LAUNCH).toBeLessThanOrEqual(0.25);
+    expect(S3_TIMES.JAM).toBeLessThan(S3_TIMES.OFF_BOW);
+    expect(evaluate(ct, S3_TIMES.JAM).activeThreats.size).toBeGreaterThan(0);
+  });
+
   it("denies only the scenario's jammed links at the attack; the rest go dark at the ditch", () => {
     const ct = compileTimeline(s3Jamming);
     const jammed = new Set(scenarioTargets(s3Jamming.scenarioId ?? "").links);
-    const atAttack = evaluate(ct, S3_TIMES.OFF_BOW + 0.1).links;
+    const atAttack = evaluate(ct, S3_TIMES.JAM + 0.1).links;
     expect(jammed.size).toBeGreaterThan(0);
     for (const id of jammed) expect(atAttack.get(id)).toBe("denied");
     for (const id of linksLostWith(TANKER)) {

@@ -21,8 +21,13 @@ const { T } = REFUEL_OP;
 const { DECK_SPOT, DECK_Y, LANE_Z } = REFUEL_OP.geometry;
 const at = (dx: number, y: number, dz = 0): Vec3 => [DECK_SPOT[0] + dx, y, LANE_Z + dz];
 
-/** Step 8 starts on time; the attack step comes as the tanker leaves the bow without its uplinks. */
+/**
+ * Step 8 starts on time. The jammer comes up as the catapult fires (just after the step starts,
+ * since step times must strictly increase), so the C2 uplinks are already denied for the whole
+ * stroke and the failed launch follows its cause.
+ */
 const LAUNCH = T.launch;
+const JAM = LAUNCH + 0.2;
 const OFF_BOW = LAUNCH + 1.6;
 const SETTLE = OFF_BOW + 2.4;
 const DITCH = SETTLE + 1;
@@ -39,7 +44,7 @@ export function jammingStoryboard(scenarioId: string): Timeline {
     id: "s3-jamming",
     scenarioId,
     divergeAtS: LAUNCH,
-    attackAtS: OFF_BOW,
+    attackAtS: JAM,
     attack: {
       title: "C2 Link Jamming",
       detail:
@@ -61,28 +66,28 @@ export function jammingStoryboard(scenarioId: string): Timeline {
     ],
     reveal: [JAMMER],
     links: [
-      ...jammed.map((link) => ({ link, tS: OFF_BOW, state: "denied" as const })),
+      ...jammed.map((link) => ({ link, tS: JAM, state: "denied" as const })),
       ...lostAtDitch.map((link) => ({ link, tS: DITCH, state: "denied" as const })),
     ],
     cues: [
       {
         kind: "caption",
-        tS: OFF_BOW,
-        durationS: DITCH - OFF_BOW,
+        tS: JAM,
+        durationS: DITCH - JAM,
         text: "Jammer denies LOS + SATCOM C2 at the catapult stroke",
       },
       {
         kind: "caption",
-        tS: OFF_BOW + 1,
-        durationS: DITCH - OFF_BOW - 1,
+        tS: OFF_BOW,
+        durationS: DITCH - OFF_BOW,
         text: "Lost-link in climb-out · GCS has no uplink to recover",
       },
       { kind: "caption", tS: DITCH, text: "Settled off the bow · airframe and sortie lost" },
-      { kind: "status", tS: OFF_BOW, node: JAMMER, text: "RADIATING · C2 UPLINK BANDS" },
+      { kind: "status", tS: JAM, node: JAMMER, text: "RADIATING · C2 UPLINK BANDS" },
       {
         kind: "status",
-        tS: OFF_BOW,
-        durationS: DITCH - OFF_BOW,
+        tS: JAM,
+        durationS: DITCH - JAM,
         node: GCS,
         text: "C2 UPLINK DENIED · CANNOT COMMAND",
       },
@@ -100,4 +105,4 @@ export function jammingStoryboard(scenarioId: string): Timeline {
 }
 
 /** Exported for tests. */
-export const S3_TIMES = { LAUNCH, OFF_BOW, DITCH, END } as const;
+export const S3_TIMES = { LAUNCH, JAM, OFF_BOW, DITCH, END } as const;
