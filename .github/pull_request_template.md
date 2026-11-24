@@ -5,7 +5,7 @@ Closes #
 <!-- One or two sentences. Link the SPEC.md section if relevant. -->
 
 ## Authorship
-- **Written by:** <!-- human name, or agent + model, e.g. "Claude Code (Opus 5.5) driven by Phillip" -->
+- **Written by:** <!-- human name, or agent + model, e.g. "Claude Code (Opus 5.5) driven by <name>" -->
 - **Human reviewer:** <!-- leave for the owner to assign -->
 
 ## Checklist

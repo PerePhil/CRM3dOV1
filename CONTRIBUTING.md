@@ -1,6 +1,6 @@
 # Contributing (humans)
 
-Agents follow [`AGENTS.md`](AGENTS.md). This page is for the three of us: how work moves from the
+Agents follow [`AGENTS.md`](AGENTS.md). This page is for human contributors: how work moves from the
 to-do list to `main`.
 
 ## The loop
@@ -10,7 +10,7 @@ to-do list to `main`.
 4. **Point your agent at the issue**, e.g. *"Do issue #14. Read AGENTS.md and SPEC.md first. Stay in scope."*
 5. **Gate** locally: `pnpm verify` (plus `pnpm test:e2e` for UI work).
 6. **PR** with the template filled in, including **which agent/model** wrote it. `Closes #N` links it.
-7. **Review**: one teammate approves; contract/guardrail paths need the code owner. CI must be green.
+7. **Review**: one maintainer approves; contract/guardrail paths need the code owner. CI must be green.
 8. **Squash-merge**, delete the branch, and move on. The issue closes itself.
 
 ## Rules of thumb
@@ -46,8 +46,8 @@ There are no preview deploys. Every PR's CI run produces the evidence instead:
 - **Headers:** `apps/web/public/_headers` sets a strict CSP (no `unsafe-eval`, no `unsafe-inline`) and
   the other security headers. `vite preview` serves the same file, so the e2e smoke test fails on any
   CSP violation. If a new feature needs a CSP change, change `_headers` in the PR and say why.
-- **Search engines:** `X-Robots-Tag: noindex` and `robots.txt` keep the site unindexed until the class
-  reveal. Remove both then.
+- **Search engines:** `X-Robots-Tag: noindex` and `robots.txt` keep the site unindexed. Remove both
+  when the site should appear in search results.
 
 ## Labels
 | Label | Meaning |
@@ -67,4 +67,4 @@ There are no preview deploys. Every PR's CI run produces the evidence instead:
 - **`production` Environment** (Settings → Environments): deployment branches limited to `main`; holds
   the `CLOUDFLARE_API_TOKEN` (Pages: Edit only) and `CLOUDFLARE_ACCOUNT_ID` secrets. No Cloudflare
   repository secrets.
-- **Collaborators:** Jared, Ella with *Write*.
+- **Collaborators:** maintainers with *Write*.

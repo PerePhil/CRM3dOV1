@@ -75,7 +75,7 @@ if (DRY) {
     `DRY RUN: ${LABELS.length} labels, ${Object.keys(milestones).length} milestones, ${tasks.length} issues\n`,
   );
   for (const [k, m] of Object.entries(milestones)) {
-    console.log(`\n${m.title} (due ${m.due})`);
+    console.log(`\n${m.title}${m.due ? ` (due ${m.due})` : ""}`);
     for (const t of tasks.filter((x) => x.milestone === k)) {
       console.log(
         `  [${t.who === "agent-ok" ? "agent" : "human"}] ${t.title}${t.depends ? `  ← ${t.depends.join(", ")}` : ""}`,
@@ -104,8 +104,7 @@ for (const m of Object.values(milestones)) {
     "repos/{owner}/{repo}/milestones",
     "-f",
     `title=${m.title}`,
-    "-f",
-    `due_on=${m.due}T23:59:59Z`,
+    ...(m.due ? ["-f", `due_on=${m.due}T23:59:59Z`] : []),
     "-f",
     `description=${m.description}`,
   ]);
