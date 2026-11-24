@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // dist-guard: run after building apps/web. Fails if the build would publish source maps
-// (the repo is private; the public site must not ship readable source) or if the Cloudflare
+// (the site ships built code only; source lives on GitHub) or if the Cloudflare
 // Pages _headers / robots.txt files are missing from the output.
 import { existsSync, readdirSync, statSync } from "node:fs";
 import { join, relative } from "node:path";

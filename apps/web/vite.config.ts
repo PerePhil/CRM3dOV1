@@ -31,7 +31,7 @@ export default defineConfig({
   server: { port: 5173, strictPort: true },
   preview: { headers: pagesHeaders() },
   worker: { format: "es" },
-  // No source maps: the public site must not ship readable source (the repo is private).
+  // No source maps: the public site must not ship readable source (source lives on GitHub).
   build: {
     target: "es2022",
     sourcemap: false,

@@ -1,13 +1,12 @@
 # CONTESTED // OV-1 — Project Spec & Source of Truth
 
 > **Working name.** 3D interactive DoDAF OV-1 for cyber risk modeling of Boeing uncrewed systems in contested environments.
-> **Course:** Cyber Risk Modeling — Group Project, Scenario 3 (*Cyber Risk in Defense Operations*)
-> **Team:** Jared Giesen · Phillip Steiger · Ella Park
-> **Final deliverable due:** 24 Nov 2026. Presentations in the last three class sessions.
+> **Context:** academic cyber risk modeling project, scenario *Cyber Risk in Defense Operations*.
 > **Status:** v0.3, initial commit scaffolded. This file is canonical. If code, issues, or agent output disagree with it, this file wins until someone changes it by PR.
 > **v0.3.1:** `packages/catalog/src/schema.ts` and `packages/sim/src/events.ts` were reformatted by Biome 2.6 (whitespace and key quoting only); no contract shape changes.
 > **v0.4:** Added the animation layer (§3.6, ADR-0006): every time-varying thing in the scene is a declarative Timeline played by one clock. No contract changes.
 > **v0.5 (contract):** Added node kind `receiver` to `packages/catalog/src/schema.ts`, plus `N-RCV` (receiver aircraft) and `L-RCV` (tanker–receiver coordination datalink) to the catalog, for the baseline refuel mission (§5.6). Added the optional `steps` channel to the Timeline format and the Mission Steps panel (§3.6, §7).
+> **v0.5.1:** Repo made public. Removed team names and calendar dates; milestones are now ordered phases. No contract changes.
 
 ---
 
@@ -25,8 +24,8 @@ Three layers, strictly separated:
 
 **The core idea:** the sim isn't decoration. Run headless over many trials, it produces an empirical estimate of **Vulnerability** (P(threat event → loss event | controls)) for each scenario, and that estimate feeds the FAIR model directly. The animation and the numbers come from the same engine.
 
-### Why this clears the "A-grade" bar
-- The course requires ≥ 2 methodologies. We use **STRIDE + FAIR** as primary, with **STIX 2.1**, **attack trees**, **MITRE ATT&CK for ICS / EMB3D / SPARTA** mappings, and **NIST SP 800-30** framing as supporting work.
+### Why this approach
+- At least two methodologies are required. We use **STRIDE + FAIR** as primary, with **STIX 2.1**, **attack trees**, **MITRE ATT&CK for ICS / EMB3D / SPARTA** mappings, and **NIST SP 800-30** framing as supporting work.
 - It extends Milestone 1 directly: same asset table, same threat paths, same STRIDE mapping, and the proposed **~$4M/yr UAV security team** is modeled as a control so we can show its ROI quantitatively.
 - The guidance says deliverables are open-ended. A live, reproducible tool beats a slide deck.
 
@@ -34,7 +33,7 @@ Three layers, strictly separated:
 
 ## 2. Scope
 
-### In scope (v1, by 24 Nov)
+### In scope (v1)
 - Stylized 3D OV-1 scene with all Milestone 1 key assets
 - 6 scenario presets (§5) with per-link and per-threat toggles
 - Control toggles that change sim behavior and FAIR inputs
@@ -369,21 +368,21 @@ The group plus coding agents share one repo, so rules matter more than usual.
 
 - **Open-source information only.** All parameters are notional or drawn from public sources (CRS, GAO, NIST, SEC filings, Boeing public pages, SP5 supplement). Cite them in `docs/fair/`.
 - **No CUI, no ITAR/EAR technical data, no employer data.** If anyone has real program knowledge, it stays out of the repo.
-- Keep the repo **private until the final presentation**, then decide as a group whether to make it public.
+- The repo is **public**. Assume everything committed, including history, issues, and PRs, is published.
 - Adversary profiles are notional composites. Don't attribute specific operations to named real-world actors beyond what's publicly reported.
 
 ---
 
 ## 11. Milestones
 
-Dates assume the 24 Nov due date. Adjust once presentation slots are posted.
+Milestones are ordered phases; each one's exit criteria must hold before the next starts.
 
-| Week of | Milestone | Exit criteria |
-|---|---|---|
-| **Nov 2** | **M0, Foundations** | Repo scaffolded, CI green, catalog schema + all S1–S3 entries, static OV-1 scene with every node and link, ADR-0001 through 0005, OV-1 reference set collected |
-| **Nov 9** | **M1, Living OV-1** | Sim engine with link + nav models, presets S1–S3 animate end to end, link toggles and lost-link procedures work, event log + replay |
-| **Nov 16** | **M2, Quantified** | headless Monte Carlo → Vuln, FAIR engine passing Python golden tests, risk drawer with LEC + ROSI, controls wired |
-| **Nov 23** | **M3, Ship** | Visual polish, URL deep-links for the demo, report in `docs/report/`, presentation deck + recorded backup demo, every member's speaking section mapped to a part of the app |
+| Milestone | Exit criteria |
+|---|---|
+| **M0, Foundations** | Repo scaffolded, CI green, catalog schema + all S1–S3 entries, static OV-1 scene with every node and link, ADR-0001 through 0005, OV-1 reference set collected |
+| **M1, Living OV-1** | Sim engine with link + nav models, presets S1–S3 animate end to end, link toggles and lost-link procedures work, event log + replay |
+| **M2, Quantified** | headless Monte Carlo → Vuln, FAIR engine passing Python golden tests, risk drawer with LEC + ROSI, controls wired |
+| **M3, Ship** | Visual polish, URL deep-links for the demo, report in `docs/report/`, presentation deck + recorded backup demo, every member's speaking section mapped to a part of the app |
 
 ---
 
@@ -393,9 +392,9 @@ Dates assume the 24 Nov due date. Adjust once presentation slots are posted.
 - [ ] Chart lib: Observable Plot vs. visx (ADR-0004)
 - [ ] MIL-STD-2525 symbols on nodes (milsymbol) or plain labels only (ADR-0005)
 - [ ] Collect 3–5 public OV-1 examples into `docs/design/ov1-refs/` as the visual reference set (sources cited)
-- [ ] Ownership split across Scene / Sim / Risk + Docs (one owner each, three of us)
+- [ ] Ownership split across Scene / Sim / Risk + Docs (one owner each)
 - [ ] Whether the Mission Impact scale feeds the risk heat map or stays a separate axis
-- [ ] Repo visibility after the presentation
+- [x] Repo visibility: public
 - [ ] Monte Carlo trial counts (sim $N$, FAIR iterations) vs. in-browser runtime budget
 
 ---

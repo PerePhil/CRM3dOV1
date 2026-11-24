@@ -13,10 +13,10 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 milestones:
-  M0: { title: "M0 — Foundations", due: "2026-11-08", description: "Repo live, contracts seeded, static OV-1 scene, ADRs 0001–0005, OV-1 refs collected" }
-  M1: { title: "M1 — Living OV-1", due: "2026-11-15", description: "Sim engine, S1–S3 animate end to end, link toggles + lost-link procedures, event log + replay" }
-  M2: { title: "M2 — Quantified", due: "2026-11-22", description: "S4–S6, Monte Carlo → Vuln, FAIR engine passing golden tests, risk drawer with LEC + ROSI" }
-  M3: { title: "M3 — Ship", due: "2026-11-24", description: "Polish, demo deep-links, report, deck + recorded backup demo, speaker map" }
+  M0: { title: "M0 — Foundations", description: "Repo live, contracts seeded, static OV-1 scene, ADRs 0001–0005, OV-1 refs collected" }
+  M1: { title: "M1 — Living OV-1", description: "Sim engine, S1–S3 animate end to end, link toggles + lost-link procedures, event log + replay" }
+  M2: { title: "M2 — Quantified", description: "S4–S6, Monte Carlo → Vuln, FAIR engine passing golden tests, risk drawer with LEC + ROSI" }
+  M3: { title: "M3 — Ship", description: "Polish, demo deep-links, report, deck + recorded backup demo, speaker map" }
 
 tasks:
   # ═══════════════════════════════ M0 — Foundations ═══════════════════════════════
@@ -32,7 +32,7 @@ tasks:
       - "`pnpm verify` and `pnpm test:e2e` pass locally"
       - "CODEOWNERS placeholders replaced with real usernames"
       - "Branch protection on main: 1 approval, code-owner review, CI required, no force-push"
-      - "Jared and Ella added as collaborators"
+      - "Collaborators added"
 
   - key: setup-cloudflare
     title: "[infra] Cloudflare Pages project + preview secrets"

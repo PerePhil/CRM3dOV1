@@ -8,7 +8,7 @@
 # - img-src data: covers the empty data: favicon in index.html (it stops a /favicon.ico 404).
 # - worker-src 'self' pre-allows same-origin module workers (planned sim / Monte Carlo workers).
 #
-# X-Robots-Tag: REMOVE at the class reveal (also delete public/robots.txt's Disallow rule).
+# X-Robots-Tag: REMOVE to allow indexing (also delete public/robots.txt's Disallow rule).
 /*
   Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
   X-Content-Type-Options: nosniff

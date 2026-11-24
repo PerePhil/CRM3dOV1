@@ -4,15 +4,14 @@
 You can jam, spoof, or compromise each link and component of a notional Boeing MQ-25-class mission,
 watch what the aircraft does, and see the result quantified with FAIR (ALE, loss exceedance, ROSI).
 
-CMU Cyber Risk Modeling, Group Project, Scenario 3 · Jared Giesen · Phillip Steiger · Ella Park
-Due 24 Nov 2026 · **[SPEC.md](SPEC.md) is the source of truth.**
+An academic cyber risk modeling project. **[SPEC.md](SPEC.md) is the source of truth.**
 
 > `UNCLASSIFIED // NOTIONAL — ACADEMIC USE`. Open-source information only. No CUI, no
 > export-controlled technical data, no employer data. See SPEC §10.
 
 **Public site:** <https://contested-ov1.pages.dev>. It updates automatically on every merge to `main`
-(`.github/workflows/deploy.yml`). There are **no preview deploys** for PRs or branches. The GitHub repo
-stays private, and production builds ship no source maps.
+(`.github/workflows/deploy.yml`). There are **no preview deploys** for PRs or branches, and production
+builds ship no source maps.
 
 ---
 
@@ -41,7 +40,7 @@ Or open the repo in a **devcontainer** (VS Code / Codespaces), which installs ev
 
 ## First-time setup (repo owner, once)
 
-1. **Create an empty private GitHub repo** (no README or license, so the first push is clean).
+1. **Create an empty GitHub repo** (no README or license, so the first push is clean).
 2. **Generate the lockfiles and make the initial commit.** The lockfiles aren't in the zip; they have to be
    generated on a machine with registry access, and CI installs with `--frozen-lockfile` / `--locked`.
    ```bash
@@ -53,7 +52,7 @@ Or open the repo in a **devcontainer** (VS Code / Codespaces), which installs ev
    git init -b main && git add -A && git commit -m "chore: initial scaffold"
    git remote add origin git@github.com:<you>/contested-ov1.git && git push -u origin main
    ```
-3. **Fill in `.github/CODEOWNERS`.** Replace `@OWNER_PHILLIP`, `@OWNER_JARED`, `@OWNER_ELLA` with real usernames.
+3. **Review `.github/CODEOWNERS`.** Add each maintainer's GitHub username to the rules that should require them.
 4. **Turn on branch protection** for `main` (settings listed in [CONTRIBUTING.md](CONTRIBUTING.md#repo-settings-owner-sets-these-once-they-arent-files)).
 5. **Seed the shared to-do list:** `gh auth login`, then `pnpm tasks:seed --dry-run`, then `pnpm tasks:seed`.
 6. **Create the Project board** (next section) and add the issues.
@@ -61,7 +60,7 @@ Or open the repo in a **devcontainer** (VS Code / Codespaces), which installs ev
    `main`). In GitHub, create a `production` **Environment** restricted to the `main` branch and add
    `CLOUDFLARE_API_TOKEN` (scoped to *Cloudflare Pages: Edit*) and `CLOUDFLARE_ACCOUNT_ID` as **environment
    secrets**. Never add them as repository secrets. Until they exist, the deploy workflow skips cleanly.
-8. Add Jared and Ella as collaborators and send them this README.
+8. Add collaborators and send them this README.
 
 ---
 
@@ -72,7 +71,7 @@ system that every person *and* every coding agent can read, claim, and close thr
 
 - **`tasks/backlog.yaml`** is the seed: 45 tasks across milestones M0–M3. Each task has an owner type
   (`agent-ok` / `human-only`), area, goal, **files in scope**, acceptance criteria, and dependencies.
-- **`pnpm tasks:seed`** turns it into labels, dated milestones, and issues. It's idempotent, so re-running
+- **`pnpm tasks:seed`** turns it into labels, milestones, and issues. It's idempotent, so re-running
   only adds what's new. After seeding, **Issues are the live list.** Don't track progress in the YAML.
 - **Project board:** in GitHub, go to **Projects → New project → Board**, link it to the repo, and add all
   issues. Use the columns **Backlog → Ready → In progress → In review → Done**, group by *Milestone*, and
@@ -84,18 +83,18 @@ system that every person *and* every coding agent can read, claim, and close thr
 - **Claiming:** assign yourself and add the `in-progress` label. Agents are told (AGENTS.md §0) to stop
   if a task is already claimed.
 
-| Milestone | Due | Exit criteria |
-|---|---|---|
-| M0: Foundations | Nov 8 | Repo live with guardrails, contracts seeded, static OV-1, ADRs, OV-1 refs |
-| M1: Living OV-1 | Nov 15 | Sim engine; S1–S3 animate; link toggles, lost-link, event log + replay |
-| M2: Quantified | Nov 22 | Monte Carlo → Vuln; FAIR engine; risk drawer with LEC + ROSI |
-| M3: Ship | Nov 24 | Polish, demo links, report, deck + recorded backup, speaker map |
+| Milestone | Exit criteria |
+|---|---|
+| M0: Foundations | Repo live with guardrails, contracts seeded, static OV-1, ADRs, OV-1 refs |
+| M1: Living OV-1 | Sim engine; S1–S3 animate; link toggles, lost-link, event log + replay |
+| M2: Quantified | Monte Carlo → Vuln; FAIR engine; risk drawer with LEC + ROSI |
+| M3: Ship | Polish, demo links, report, deck + recorded backup, speaker map |
 
 ---
 
 ## How multiple agents share this repo safely
 
-Three people, each running their own agents (Claude Code, Codex, Cursor, Copilot), in one repo. The
+Several people, each running their own agents (Claude Code, Codex, Cursor, Copilot), in one repo. The
 setup is built so a well-meaning agent can't quietly break someone else's work:
 
 | Risk | What stops it |
@@ -108,7 +107,7 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 | Agent math silently drifts | Python **golden vectors** the TS must match |
 | An agent loosens a test or CI rule to get green | Guardrail files are code-owned; AGENTS.md §4.9 forbids it |
 | Secrets committed | `.gitignore`, Claude settings deny reading `.env`, TruffleHog in CI, GitHub push protection |
-| Unclear authorship at grading time | PR template requires **which agent/model** wrote it and which human reviewed |
+| Unclear authorship | PR template requires **which agent/model** wrote it and which human reviewed |
 
 ---
 
@@ -172,7 +171,7 @@ setup is built so a well-meaning agent can't quietly break someone else's work:
 | `packages/catalog/` | **The contract.** `src/schema.ts` (**frozen** zod schemas with referential-integrity checks) + `data/*.json` (11 nodes, 7 links, 4 threats, 8 controls, 2 adversaries, S1–S3). `stix/` holds the STIX 2.1 bundle. |
 | `packages/sim/` | `events.ts`: **frozen** event-log contract. `log.ts`: append-only, immutable log. Link, nav, kinematics, and lost-link models arrive via M1 tasks. |
 | `packages/risk/` | Beta-PERT / Gamma / Beta / lognormal samplers, summaries, loss exceedance, ROSI. FAIR pipeline arrives via M2 tasks. |
-| `apps/web/` | Vite + React Three Fiber OV-1. `theme/tokens.css` is the only place colors and fonts live. `scene/` has the diorama layout, lightning-bolt links, platform icons, and callouts. `components/` has the banner, title block, legend, caption overlay, and panels. `anim/` is the animation layer: Timeline format, pure interpreter, playback clock, R3F bindings, sim → timeline adapter, and the registered timelines (idle holding orbit by default). `panels/` has the scenario picker, playback controls, and live link table. `e2e/` has the Playwright smoke test. `public/_headers` sets the CSP and security headers on Cloudflare Pages (and on `vite preview`, so e2e runs under the same CSP); `public/robots.txt` blocks crawlers until the class reveal. |
+| `apps/web/` | Vite + React Three Fiber OV-1. `theme/tokens.css` is the only place colors and fonts live. `scene/` has the diorama layout, lightning-bolt links, platform icons, and callouts. `components/` has the banner, title block, legend, caption overlay, and panels. `anim/` is the animation layer: Timeline format, pure interpreter, playback clock, R3F bindings, sim → timeline adapter, and the registered timelines (idle holding orbit by default). `panels/` has the scenario picker, playback controls, and live link table. `e2e/` has the Playwright smoke test. `public/_headers` sets the CSP and security headers on Cloudflare Pages (and on `vite preview`, so e2e runs under the same CSP); `public/robots.txt` blocks crawlers until the site is opened to search engines. |
 | `analysis/` | Python (uv): `golden.py` generates reference vectors from scipy; pytest proves the committed fixture isn't stale. |
 | `fixtures/risk/pert_golden.json` | Generated golden vectors; the TS PERT tests must match them. |
 
